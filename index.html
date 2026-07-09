@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>アンケート円グラフ一括ZIP出力ツール</title>
-    <!-- CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js">
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js">
@@ -12,7 +11,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js">
     </script>
     <style>
-        /* ---------- 全体リセット ---------- */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -35,16 +33,13 @@
         h1 {
             font-size: 28px;
             font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 12px;
             margin-bottom: 8px;
         }
         h1 small {
             font-size: 16px;
             font-weight: 400;
             color: #64748b;
-            margin-left: auto;
+            margin-left: 16px;
         }
         .sub {
             color: #64748b;
@@ -62,7 +57,6 @@
             margin: 32px 0;
         }
 
-        /* ---------- セクション ---------- */
         .section {
             background: #fafbfc;
             border-radius: 16px;
@@ -177,7 +171,6 @@
             gap: 16px;
         }
 
-        /* ---------- ドラッグ＆ドロップ ---------- */
         .dropzone {
             border: 2px dashed #cbd5e1;
             border-radius: 20px;
@@ -210,7 +203,6 @@
             display: none;
         }
 
-        /* ---------- プレビュー ---------- */
         .preview-wrap {
             overflow-x: auto;
             margin-top: 14px;
@@ -239,7 +231,6 @@
             border-bottom: none;
         }
 
-        /* ---------- 進捗 ---------- */
         .progress-wrap {
             margin: 10px 0 6px;
         }
@@ -263,7 +254,6 @@
             margin-top: 6px;
         }
 
-        /* ---------- ステータス ---------- */
         .status-msg {
             padding: 12px 18px;
             border-radius: 12px;
@@ -281,7 +271,6 @@
             color: #991b1b;
         }
 
-        /* ---------- レスポンシブ ---------- */
         @media (max-width: 640px) {
             .container {
                 padding: 20px 16px;
@@ -304,101 +293,93 @@
 
     <div class="container" id="app">
         <h1>
-            📊 アンケート円グラフ一括ZIP出力
+            アンケート円グラフ一括ZIP出力
             <small>フロントエンド完結</small>
         </h1>
         <div class="sub">
             CSVを読み込んで、指定した軸（性別・年代など）の全組み合わせで円グラフを生成し、ZIPで一括ダウンロードします。
         </div>
 
-        <!-- ===== STEP1 項目設定 ===== -->
+        <!-- ===== STEP1 ===== -->
         <div class="section">
             <div class="section-title">
-                <span>⚙️ ステップ1：項目設定</span>
+                <span>ステップ1：項目設定</span>
                 <span class="badge">集計軸</span>
             </div>
             <div class="row">
                 <div style="font-weight:500; min-width:100px;">集計軸（クロス集計する項目）</div>
-                <div class="tag-group" id="axisGroup">
-                    <!-- JSで動的に追加 -->
-                </div>
-                <button class="btn" id="addAxisBtn">＋ 軸を追加</button>
+                <div class="tag-group" id="axisGroup"></div>
+                <button class="btn" id="addAxisBtn">+ 軸を追加</button>
             </div>
             <div style="margin-top:18px; border-top:1px dashed #e2e8f0; padding-top:18px;">
                 <div class="row">
                     <div style="font-weight:500; min-width:100px;">集計対象（円グラフにしたい項目）</div>
-                    <div class="tag-group" id="targetGroup">
-                        <!-- JSで動的に追加 -->
-                    </div>
-                    <button class="btn" id="addTargetBtn">＋ 対象を追加</button>
+                    <div class="tag-group" id="targetGroup"></div>
+                    <button class="btn" id="addTargetBtn">+ 対象を追加</button>
                 </div>
             </div>
             <div style="margin-top:14px; font-size:14px; color:#94a3b8;">
-                💡 例：集計軸＝性別,年代 &nbsp;｜&nbsp; 集計対象＝改善分野
+                例：集計軸＝性別,年代 ｜ 集計対象＝改善分野
             </div>
         </div>
 
-        <!-- ===== STEP2 CSVアップロード ===== -->
+        <!-- ===== STEP2 ===== -->
         <div class="section">
             <div class="section-title">
-                <span>📁 ステップ2：CSVアップロード</span>
+                <span>ステップ2：CSVアップロード</span>
                 <span class="badge">ヘッダー行必須</span>
             </div>
             <div class="dropzone" id="dropzone">
-                <span class="icon">📤</span>
+                <div class="icon">+</div>
                 <div style="font-weight:600; font-size:16px;">クリックまたはドラッグ＆ドロップ</div>
                 <div class="hint">CSVファイル（.csv）を選択してください</div>
                 <div class="file-name" id="fileName">まだファイルが選択されていません</div>
             </div>
             <input type="file" id="fileInput" accept=".csv">
 
-            <!-- プレビュー -->
             <div id="previewArea" style="display:none; margin-top:16px;">
-                <div style="font-weight:500; margin-bottom:6px;">📄 データプレビュー（先頭5行）</div>
+                <div style="font-weight:500; margin-bottom:6px;">データプレビュー（先頭5行）</div>
                 <div class="preview-wrap" id="previewTableWrap"></div>
                 <div style="margin-top:8px; font-size:14px; color:#475569;" id="rowCount"></div>
             </div>
         </div>
 
-        <!-- ===== STEP3 実行＆ダウンロード ===== -->
+        <!-- ===== STEP3 ===== -->
         <div class="section">
             <div class="section-title">
-                <span>🚀 ステップ3：全パターン集計＆ZIP出力</span>
+                <span>ステップ3：全パターン集計＆ZIP出力</span>
             </div>
 
             <div class="flex">
-                <button class="btn btn-primary" id="execBtn" disabled>🔄 全パターン集計＆ZIP生成</button>
-                <button class="btn btn-success" id="downloadBtn" disabled>📥 ZIPをダウンロード</button>
-                <button class="btn" id="resetBtn">🗑️ リセット</button>
+                <button class="btn btn-primary" id="execBtn" disabled>全パターン集計＆ZIP生成</button>
+                <button class="btn btn-success" id="downloadBtn" disabled>ZIPをダウンロード</button>
+                <button class="btn" id="resetBtn">リセット</button>
             </div>
 
-            <!-- 進捗 -->
             <div class="progress-wrap" style="margin-top:16px;">
                 <div class="progress-bar"><div class="fill" id="progressFill"></div></div>
                 <div class="progress-text" id="progressText">待機中...</div>
             </div>
 
-            <!-- ステータス -->
-            <div class="status-msg" id="statusMsg">💡 CSVを読み込み、項目を設定してから「集計＆ZIP生成」を押してください。</div>
+            <div class="status-msg" id="statusMsg">CSVを読み込み、項目を設定してから「集計＆ZIP生成」を押してください。</div>
         </div>
 
         <hr>
         <div style="text-align:center; font-size:13px; color:#94a3b8;">
-            ⚡ すべてブラウザ上で処理されます。データが外部に送信されることはありません。
+            すべてブラウザ上で処理されます。データが外部に送信されることはありません。
         </div>
     </div>
 
     <script>
         // ============================================================
-        //  状態管理
+        //  状態
         // ============================================================
         const state = {
-            axes: ['性別', '年代'], // 集計軸（デフォルト）
-            targets: ['改善分野'], // 集計対象（デフォルト）
-            csvData: [], // パース済みCSV（オブジェクト配列）
-            headers: [], // ヘッダー
-            zipBlob: null, // 生成したZIP
-            chartCount: 0,
+            axes: ['性別', '年代'],
+            targets: ['改善分野'],
+            csvData: [],
+            headers: [],
+            zipBlob: null,
         };
 
         // ============================================================
@@ -421,9 +402,6 @@
         const progressText = document.getElementById('progressText');
         const statusMsg = document.getElementById('statusMsg');
 
-        // ============================================================
-        //  色パレット（円グラフ用）
-        // ============================================================
         const COLORS = [
             '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6',
             '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#84cc16',
@@ -432,19 +410,17 @@
         ];
 
         // ============================================================
-        //  レンダリング：タグ表示
+        //  レンダリング
         // ============================================================
         function renderTags() {
-            // 軸
             axisGroup.innerHTML = state.axes.map((a, i) =>
-                `<span class="tag">${a} <span class="del" data-type="axis" data-index="${i}">✕</span></span>`
-            ).join('');
-            // 対象
-            targetGroup.innerHTML = state.targets.map((t, i) =>
-                `<span class="tag">${t} <span class="del" data-type="target" data-index="${i}">✕</span></span>`
+                '<span class="tag">' + a + ' <span class="del" data-type="axis" data-index="' + i + '">✕</span></span>'
             ).join('');
 
-            // 削除イベント
+            targetGroup.innerHTML = state.targets.map((t, i) =>
+                '<span class="tag">' + t + ' <span class="del" data-type="target" data-index="' + i + '">✕</span></span>'
+            ).join('');
+
             document.querySelectorAll('.tag .del').forEach(el => {
                 el.addEventListener('click', function() {
                     const type = this.dataset.type;
@@ -465,7 +441,7 @@
         }
 
         // ============================================================
-        //  項目追加（モーダル代替：prompt）
+        //  追加
         // ============================================================
         addAxisBtn.addEventListener('click', () => {
             const val = prompt('集計軸の名前を入力してください（例：性別）');
@@ -484,26 +460,17 @@
         });
 
         // ============================================================
-        //  実行ボタンの有効/無効
+        //  実行ボタン制御
         // ============================================================
         function updateExecButton() {
             const hasData = state.csvData.length > 0;
-            const hasAxes = state.axes.length > 0;
-            const hasTargets = state.targets.length > 0;
             const allExist = state.axes.every(a => state.headers.includes(a)) &&
                 state.targets.every(t => state.headers.includes(t));
-            execBtn.disabled = !(hasData && hasAxes && hasTargets && allExist);
-            if (!hasData) {
-                execBtn.title = 'CSVを読み込んでください';
-            } else if (!allExist) {
-                execBtn.title = '設定した項目がCSVのヘッダーに存在しません';
-            } else {
-                execBtn.title = '';
-            }
+            execBtn.disabled = !(hasData && state.axes.length > 0 && state.targets.length > 0 && allExist);
         }
 
         // ============================================================
-        //  CSV読み込み（ドラッグ＆クリック）
+        //  CSV読み込み
         // ============================================================
         dropzone.addEventListener('click', () => fileInput.click());
 
@@ -543,7 +510,7 @@
         }
 
         // ============================================================
-        //  CSVパース（PapaParse使わず自力簡易パース）
+        //  CSVパース
         // ============================================================
         function parseCSV(text) {
             try {
@@ -552,11 +519,9 @@
                     alert('CSVが空か、ヘッダー行しかありません。');
                     return;
                 }
-                // ヘッダー
                 const headers = parseCSVLine(lines[0]);
                 state.headers = headers;
 
-                // データ
                 const data = [];
                 for (let i = 1; i < lines.length; i++) {
                     const vals = parseCSVLine(lines[i]);
@@ -572,9 +537,8 @@
                 state.csvData = data;
                 showPreview(headers, data);
                 updateExecButton();
-                statusMsg.textContent = `✅ ${data.length}行のデータを読み込みました。`;
+                statusMsg.textContent = '完了：' + data.length + '行のデータを読み込みました。';
                 statusMsg.className = 'status-msg ok';
-                // ZIPリセット
                 state.zipBlob = null;
                 downloadBtn.disabled = true;
                 progressFill.style.width = '0%';
@@ -584,7 +548,6 @@
             }
         }
 
-        // 簡易CSVライン解析（カンマ区切り、引用符対応）
         function parseCSVLine(line) {
             const result = [];
             let current = '';
@@ -618,33 +581,121 @@
         }
 
         // ============================================================
-        //  プレビュー表示
+        //  プレビュー
         // ============================================================
         function showPreview(headers, data) {
             previewArea.style.display = 'block';
             const rows = data.slice(0, 5);
             let html = '<table><thead><tr>';
-            headers.forEach(h => { html += `<th>${h}</th>`; });
+            headers.forEach(h => { html += '<th>' + h + '</th>'; });
             html += '</tr></thead><tbody>';
             rows.forEach(row => {
                 html += '<tr>';
-                headers.forEach(h => { html += `<td>${row[h] || ''}</td>`; });
+                headers.forEach(h => { html += '<td>' + (row[h] || '') + '</td>'; });
                 html += '</tr>';
             });
             html += '</tbody></table>';
             previewTableWrap.innerHTML = html;
-            rowCount.textContent = `📊 全 ${data.length} 行（表示は先頭5行）`;
+            rowCount.textContent = '全 ' + data.length + ' 行（表示は先頭5行）';
         }
 
         // ============================================================
-        //  メイン処理：全パターン集計 → 円グラフ生成 → ZIP
+        //  組み合わせ生成
+        // ============================================================
+        function generateAllCombinations(data, axes, target) {
+            const axisValues = axes.map(axis => {
+                const vals = [...new Set(data.map(row => row[axis] || '不明'))];
+                return vals.sort();
+            });
+
+            const results = [];
+
+            results.push({
+                label: '全体',
+                filteredData: data,
+            });
+
+            axes.forEach((axis, idx) => {
+                const unique = axisValues[idx];
+                unique.forEach(val => {
+                    const filtered = data.filter(row => row[axis] === val);
+                    results.push({
+                        label: axis + ': ' + val,
+                        filteredData: filtered,
+                    });
+                });
+            });
+
+            if (axes.length >= 2) {
+                for (let r = 2; r <= axes.length; r++) {
+                    const combos = getCombinations(axes, r);
+                    for (const combo of combos) {
+                        const valueCombos = cartesianProduct(combo.map(a => {
+                            const vals = [...new Set(data.map(row => row[a] || '不明'))];
+                            return vals.sort();
+                        }));
+                        for (const vals of valueCombos) {
+                            const label = combo.map((a, i) => a + ':' + vals[i]).join(' / ');
+                            const filtered = data.filter(row => {
+                                return combo.every((a, i) => row[a] === vals[i]);
+                            });
+                            if (filtered.length === 0) continue;
+                            results.push({
+                                label: label,
+                                filteredData: filtered,
+                            });
+                        }
+                    }
+                }
+            }
+
+            return results;
+        }
+
+        function getCombinations(arr, r) {
+            if (r === 0) return [
+                []
+            ];
+            if (arr.length === 0) return [];
+            const [first, ...rest] = arr;
+            const withFirst = getCombinations(rest, r - 1).map(c => [first, ...c]);
+            const withoutFirst = getCombinations(rest, r);
+            return [...withFirst, ...withoutFirst];
+        }
+
+        function cartesianProduct(arrays) {
+            if (arrays.length === 0) return [
+                []
+            ];
+            const [first, ...rest] = arrays;
+            const restProduct = cartesianProduct(rest);
+            const result = [];
+            for (const v of first) {
+                for (const rp of restProduct) {
+                    result.push([v, ...rp]);
+                }
+            }
+            return result;
+        }
+
+        function countCategories(data, target) {
+            const counts = {};
+            data.forEach(row => {
+                const val = row[target] || '不明';
+                counts[val] = (counts[val] || 0) + 1;
+            });
+            return counts;
+        }
+
+        // ============================================================
+        //  メイン実行
         // ============================================================
         execBtn.addEventListener('click', async () => {
             if (state.csvData.length === 0) {
                 alert('CSVを読み込んでください。');
                 return;
             }
-            // 存在チェック
+
             const allExist = state.axes.every(a => state.headers.includes(a)) &&
                 state.targets.every(t => state.headers.includes(t));
             if (!allExist) {
@@ -652,10 +703,9 @@
                 return;
             }
 
-            // ボタン無効化
             execBtn.disabled = true;
-            execBtn.textContent = '⏳ 処理中...';
-            statusMsg.textContent = '⏳ 集計＆円グラフ生成中...';
+            execBtn.textContent = '処理中...';
+            statusMsg.textContent = '集計＆円グラフ生成中...';
             statusMsg.className = 'status-msg';
 
             try {
@@ -663,17 +713,15 @@
                 const folder = zip.folder('円グラフ');
                 const data = state.csvData;
                 const axes = state.axes;
-                const target = state.targets[0]; // 集計対象は1つだけ想定（最初の1つ）
+                const target = state.targets[0];
                 const allCombos = generateAllCombinations(data, axes, target);
 
                 let completed = 0;
                 const total = allCombos.length;
 
-                // 進捗初期化
                 progressFill.style.width = '0%';
-                progressText.textContent = `0 / ${total}`;
+                progressText.textContent = '0 / ' + total;
 
-                // 各組み合わせで円グラフ生成
                 for (const combo of allCombos) {
                     const { label, filteredData } = combo;
                     const counts = countCategories(filteredData, target);
@@ -687,10 +735,8 @@
                     canvas.height = 800;
                     const ctx = canvas.getContext('2d');
 
-                    // 色割り当て
                     const bgColors = labels.map((_, i) => COLORS[i % COLORS.length]);
 
-                    // Chart.js インスタンス
                     const chart = new Chart(ctx, {
                         type: 'pie',
                         data: {
@@ -720,7 +766,7 @@
                                         label: function(context) {
                                             const total = context.dataset.data.reduce((a, b) => a + b, 0);
                                             const pct = total > 0 ? (context.parsed / total * 100).toFixed(1) : 0;
-                                            return `${context.label}: ${context.parsed} (${pct}%)`;
+                                            return context.label + ': ' + context.parsed + ' (' + pct + '%)';
                                         }
                                     }
                                 }
@@ -728,143 +774,41 @@
                         }
                     });
 
-                    // 画像化（少し待ってから描画完了を保証）
                     await new Promise(resolve => setTimeout(resolve, 100));
 
                     const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
                     const safeName = label.replace(/[/\\?%*:|"<>]/g, '_');
-                    folder.file(`${safeName}.png`, blob);
+                    folder.file(safeName + '.png', blob);
 
-                    // 破棄（メモリ解放）
                     chart.destroy();
                     canvas.remove();
 
                     completed++;
                     const pct = Math.round((completed / total) * 100);
                     progressFill.style.width = pct + '%';
-                    progressText.textContent = `${completed} / ${total} (${pct}%)`;
+                    progressText.textContent = completed + ' / ' + total + ' (' + pct + '%)';
                 }
 
-                // ZIP生成
                 const zipBlob = await zip.generateAsync({ type: 'blob' });
                 state.zipBlob = zipBlob;
                 downloadBtn.disabled = false;
 
-                statusMsg.textContent = `✅ 完了！ ${total}個の円グラフを生成しました。ダウンロードしてください。`;
+                statusMsg.textContent = '完了！ ' + total + '個の円グラフを生成しました。ダウンロードしてください。';
                 statusMsg.className = 'status-msg ok';
-                progressText.textContent = `✅ 完了（${total}個）`;
+                progressText.textContent = '完了（' + total + '個）';
 
             } catch (e) {
                 console.error(e);
-                statusMsg.textContent = `❌ エラーが発生しました: ${e.message}`;
+                statusMsg.textContent = 'エラーが発生しました: ' + e.message;
                 statusMsg.className = 'status-msg err';
             } finally {
                 execBtn.disabled = false;
-                execBtn.textContent = '🔄 全パターン集計＆ZIP生成';
+                execBtn.textContent = '全パターン集計＆ZIP生成';
             }
         });
 
         // ============================================================
-        //  全組み合わせ生成（再帰）
-        // ============================================================
-        function generateAllCombinations(data, axes, target) {
-            // 各軸のユニーク値
-            const axisValues = axes.map(axis => {
-                const vals = [...new Set(data.map(row => row[axis] || '不明'))];
-                return vals.sort();
-            });
-
-            const results = [];
-
-            // 全体（全データ）
-            results.push({
-                label: '全体',
-                filteredData: data,
-            });
-
-            // 単一軸ごと
-            axes.forEach((axis, idx) => {
-                const unique = axisValues[idx];
-                unique.forEach(val => {
-                    const filtered = data.filter(row => row[axis] === val);
-                    results.push({
-                        label: `${axis}: ${val}`,
-                        filteredData: filtered,
-                    });
-                });
-            });
-
-            // 全組み合わせ（2軸以上）
-            if (axes.length >= 2) {
-                // すべての組み合わせを生成（2軸, 3軸, ...）
-                for (let r = 2; r <= axes.length; r++) {
-                    const combos = getCombinations(axes, r);
-                    for (const combo of combos) {
-                        // 各軸の値の組み合わせを取得
-                        const valueCombos = cartesianProduct(combo.map(a => {
-                            const vals = [...new Set(data.map(row => row[a] || '不明'))];
-                            return vals.sort();
-                        }));
-                        for (const vals of valueCombos) {
-                            const label = combo.map((a, i) => `${a}:${vals[i]}`).join(' / ');
-                            const filtered = data.filter(row => {
-                                return combo.every((a, i) => row[a] === vals[i]);
-                            });
-                            if (filtered.length === 0) continue;
-                            results.push({
-                                label: label,
-                                filteredData: filtered,
-                            });
-                        }
-                    }
-                }
-            }
-
-            return results;
-        }
-
-        // 配列の組み合わせ（nCr）
-        function getCombinations(arr, r) {
-            if (r === 0) return [
-                []
-            ];
-            if (arr.length === 0) return [];
-            const [first, ...rest] = arr;
-            const withFirst = getCombinations(rest, r - 1).map(c => [first, ...c]);
-            const withoutFirst = getCombinations(rest, r);
-            return [...withFirst, ...withoutFirst];
-        }
-
-        // 直積（複数配列の全組み合わせ）
-        function cartesianProduct(arrays) {
-            if (arrays.length === 0) return [
-                []
-            ];
-            const [first, ...rest] = arrays;
-            const restProduct = cartesianProduct(rest);
-            const result = [];
-            for (const v of first) {
-                for (const rp of restProduct) {
-                    result.push([v, ...rp]);
-                }
-            }
-            return result;
-        }
-
-        // ============================================================
-        //  カテゴリ集計（カウント）
-        // ============================================================
-        function countCategories(data, target) {
-            const counts = {};
-            data.forEach(row => {
-                const val = row[target] || '不明';
-                counts[val] = (counts[val] || 0) + 1;
-            });
-            return counts;
-        }
-
-        // ============================================================
-        //  ZIPダウンロード
+        //  ダウンロード
         // ============================================================
         downloadBtn.addEventListener('click', () => {
             if (state.zipBlob) {
@@ -888,18 +832,17 @@
             downloadBtn.disabled = true;
             progressFill.style.width = '0%';
             progressText.textContent = '待機中...';
-            statusMsg.textContent = '💡 CSVを読み込み、項目を設定してから「集計＆ZIP生成」を押してください。';
+            statusMsg.textContent = 'CSVを読み込み、項目を設定してから「集計＆ZIP生成」を押してください。';
             statusMsg.className = 'status-msg';
             fileInput.value = '';
             execBtn.disabled = true;
         });
 
         // ============================================================
-        //  初期表示
+        //  初期化
         // ============================================================
         renderTags();
         updateExecButton();
-        statusMsg.textContent = '💡 CSVを読み込み、項目を設定してから「集計＆ZIP生成」を押してください。';
     </script>
 
 </body>
