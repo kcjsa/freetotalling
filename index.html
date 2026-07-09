@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ケース別集計 円グラフZIP出力</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js">
     </script>
@@ -23,7 +23,7 @@
             color: #1e293b;
         }
         .container {
-            max-width: 1100px;
+            max-width: 1200px;
             margin: 0 auto;
             background: #ffffff;
             border-radius: 24px;
@@ -137,6 +137,11 @@
             background: #059669;
             border-color: #059669;
         }
+        .btn-sm {
+            padding: 2px 12px;
+            font-size: 12px;
+            border-radius: 20px;
+        }
         .btn:disabled {
             opacity: 0.4;
             pointer-events: none;
@@ -170,36 +175,13 @@
         .editor-wrap th {
             background: #f1f5f9;
             text-align: left;
-            padding: 8px 12px;
+            padding: 8px 10px;
             font-weight: 600;
             border-bottom: 2px solid #e2e8f0;
             position: sticky;
             top: 0;
             z-index: 2;
-        }
-        .editor-wrap th .col-actions {
-            display: flex;
-            gap: 6px;
-            align-items: center;
-            margin-top: 4px;
-        }
-        .editor-wrap th .col-actions .btn-sm {
-            padding: 2px 10px;
-            font-size: 11px;
-            border-radius: 20px;
-            border: 1px solid #cbd5e1;
-            background: #fff;
-            cursor: pointer;
-        }
-        .editor-wrap th .col-actions .btn-sm:hover {
-            background: #f1f5f9;
-        }
-        .editor-wrap th .col-actions .btn-sm.del-col {
-            color: #ef4444;
-            border-color: #fca5a5;
-        }
-        .editor-wrap th .col-actions .btn-sm.del-col:hover {
-            background: #fef2f2;
+            min-width: 100px;
         }
         .editor-wrap td {
             padding: 4px 6px;
@@ -251,6 +233,73 @@
             font-weight: 500;
             min-width: 28px;
         }
+        .editor-wrap .col-header {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .editor-wrap .col-header .col-label {
+            cursor: text;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .editor-wrap .col-header .col-actions {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+        .editor-wrap .col-header .col-actions .btn {
+            padding: 1px 10px;
+            font-size: 11px;
+            border-radius: 20px;
+        }
+        .editor-wrap .col-header .col-actions .btn.del-col {
+            color: #ef4444;
+            border-color: #fca5a5;
+        }
+        .editor-wrap .col-header .col-actions .btn.del-col:hover {
+            background: #fef2f2;
+        }
+        .editor-wrap .col-header .col-actions .btn.add-choice {
+            color: #3b82f6;
+            border-color: #93c5fd;
+        }
+        .editor-wrap .col-header .col-actions .btn.add-choice:hover {
+            background: #eff6ff;
+        }
+        .editor-wrap .col-header .weight-badge {
+            font-size: 10px;
+            color: #10b981;
+            font-weight: 400;
+        }
+        .fixed-col {
+            background: #d1fae5 !important;
+        }
+        .choice-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 4px;
+        }
+        .choice-tag {
+            background: #eef2ff;
+            padding: 1px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            color: #1e293b;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .choice-tag .del-choice {
+            cursor: pointer;
+            color: #ef4444;
+            font-weight: 700;
+            font-size: 12px;
+        }
+        .choice-tag .del-choice:hover {
+            transform: scale(1.2);
+        }
         .editor-toolbar {
             display: flex;
             flex-wrap: wrap;
@@ -301,15 +350,6 @@
             background: #fef2f2;
             color: #991b1b;
         }
-        .hidden {
-            display: none !important;
-        }
-        .mt-8 {
-            margin-top: 8px;
-        }
-        .gap-8 {
-            gap: 8px;
-        }
         .weight-info {
             background: #fef3c7;
             border: 1px solid #f59e0b;
@@ -347,7 +387,7 @@
             .data-status {
                 margin-left: 0;
             }
-            .editor-wrap th .col-actions {
+            .editor-wrap .col-header .col-actions {
                 flex-wrap: wrap;
             }
         }
@@ -358,14 +398,14 @@
     <div class="container" id="app">
         <h1>
             ケース別集計 円グラフZIP出力
-            <small>人数指定タイプ</small>
+            <small>選択肢追加＆プルダウン入力</small>
         </h1>
         <div class="sub">
-            各ケース（例：男性×20代×道路整備）ごとに「人数」を入力します。
-            性別・年代がなくてもOK。項目名は自由に決められます。
+            各列に「選択肢を追加」できます。追加した選択肢はプルダウンで選べるので、手入力を減らせます。
+            人数カラムは固定（数値入力）です。
         </div>
 
-        <!-- ===== STEP1 集計設定 ===== -->
+        <!-- STEP1 集計設定 -->
         <div class="section">
             <div class="section-title">
                 <span>ステップ1：集計設定</span>
@@ -374,50 +414,38 @@
             <div class="row" style="gap:20px;">
                 <div>
                     <label>集計軸（クロス集計する項目）</label>
-                    <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:6px;" id="axisSelectors">
-                        <!-- JSで動的生成 -->
-                    </div>
+                    <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:6px;" id="axisSelectors"></div>
                     <button class="btn" id="addAxisSelectorBtn" style="margin-top:6px;">+ 軸を追加</button>
                 </div>
                 <div>
                     <label>集計対象（円グラフにしたい項目）</label>
-                    <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:6px;" id="targetSelectors">
-                        <!-- JSで動的生成 -->
-                    </div>
+                    <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:6px;" id="targetSelectors"></div>
                     <button class="btn" id="addTargetSelectorBtn" style="margin-top:6px;">+ 対象を追加</button>
-                </div>
-                <div>
-                    <label>人数カラム</label>
-                    <div style="margin-top:6px;">
-                        <select id="weightColumnSelect" style="padding:8px 14px; border-radius:8px; border:1px solid #cbd5e1; font-size:14px; background:#fff; min-width:160px;">
-                        </select>
-                    </div>
-                    <div style="font-size:12px; color:#94a3b8; margin-top:4px;">集計時にこの列の数値を使います</div>
                 </div>
             </div>
             <div class="weight-info">
-                <strong>重要：</strong>「人数カラム」に指定した列の数値が、円グラフの集計に使われます。
-                ケースごとの人数を入力してください。
+                <strong>「人数」カラムは固定です。</strong> 数値（半角数字）を入力してください。
+                それ以外のカラムは「選択肢を追加」でプルダウン化できます。
             </div>
         </div>
 
-        <!-- ===== STEP2 データ入力 ===== -->
+        <!-- STEP2 データ入力 -->
         <div class="section">
             <div class="section-title">
                 <span>ステップ2：データ入力</span>
-                <span class="badge">ケースごとに人数を入力</span>
+                <span class="badge green">選択肢追加でプルダウン化</span>
             </div>
 
             <div class="flex-between">
                 <div style="display:flex; gap:10px; flex-wrap:wrap;">
                     <button class="btn" id="addRowBtn">+ 行を追加</button>
-                    <button class="btn" id="addColBtn">+ 列（項目）を追加</button>
+                    <button class="btn" id="addColBtn">+ 列（分類項目）を追加</button>
                     <button class="btn" id="clearDataBtn">全行削除</button>
                 </div>
                 <div class="data-status" id="dataStatus">行数: 0 ｜ 列数: 0</div>
             </div>
 
-            <div class="editor-wrap" id="editorWrap">
+            <div class="editor-wrap">
                 <table id="editorTable">
                     <thead id="editorHead"></thead>
                     <tbody id="editorBody"></tbody>
@@ -425,28 +453,26 @@
             </div>
 
             <div style="margin-top:12px; font-size:13px; color:#94a3b8;">
-                * 列見出しをダブルクリックで編集。列の ✕ ボタンで削除。<br>
-                * 「人数」列は数値（半角数字）を入力してください。
+                * 列名をダブルクリックで編集できます。<br>
+                * 「選択肢を追加」ボタンでその列の選択肢を追加すると、セルがプルダウンになります。<br>
+                * プルダウンにない値を直接入力したい場合は、プルダウンを選ばずにテキスト入力も可能です。
             </div>
         </div>
 
-        <!-- ===== STEP3 実行 ===== -->
+        <!-- STEP3 実行 -->
         <div class="section">
             <div class="section-title">
                 <span>ステップ3：全パターン集計＆ZIP出力</span>
             </div>
-
             <div class="flex">
                 <button class="btn btn-primary" id="execBtn">全パターン集計＆ZIP生成</button>
                 <button class="btn btn-success" id="downloadBtn" disabled>ZIPをダウンロード</button>
                 <button class="btn" id="resetBtn">リセット</button>
             </div>
-
             <div class="progress-wrap" style="margin-top:16px;">
                 <div class="progress-bar"><div class="fill" id="progressFill"></div></div>
                 <div class="progress-text" id="progressText">待機中...</div>
             </div>
-
             <div class="status-msg" id="statusMsg">データを入力し、集計設定をしてから実行してください。</div>
         </div>
 
@@ -460,8 +486,10 @@
         // ============================================================
         //  状態
         // ============================================================
+        const WEIGHT_KEY = '人数';
+
         const state = {
-            headers: ['性別', '年代', '改善分野', '人数'],
+            headers: ['性別', '年代', '改善分野', WEIGHT_KEY],
             rows: [
                 { '性別': '男性', '年代': '20代', '改善分野': '道路整備', '人数': '45' },
                 { '性別': '男性', '年代': '20代', '改善分野': '子育て支援', '人数': '30' },
@@ -470,20 +498,24 @@
                 { '性別': '女性', '年代': '30代', '改善分野': '子育て支援', '人数': '35' },
                 { '性別': '女性', '年代': '20代', '改善分野': '防災対策', '人数': '20' },
             ],
+            // 各列の選択肢リスト { 列名: [選択肢1, 選択肢2, ...] }
+            choices: {
+                '性別': ['男性', '女性'],
+                '年代': ['20代', '30代', '40代', '50代以上'],
+                '改善分野': ['道路整備', '子育て支援', '防災対策', '観光振興', 'ごみ処理'],
+            },
             selectedAxes: ['性別', '年代'],
             selectedTargets: ['改善分野'],
-            weightColumn: '人数',
             zipBlob: null,
         };
 
         // ============================================================
-        //  DOM参照
+        //  DOM
         // ============================================================
         const axisSelectors = document.getElementById('axisSelectors');
         const targetSelectors = document.getElementById('targetSelectors');
         const addAxisSelectorBtn = document.getElementById('addAxisSelectorBtn');
         const addTargetSelectorBtn = document.getElementById('addTargetSelectorBtn');
-        const weightColumnSelect = document.getElementById('weightColumnSelect');
         const editorHead = document.getElementById('editorHead');
         const editorBody = document.getElementById('editorBody');
         const addRowBtn = document.getElementById('addRowBtn');
@@ -505,59 +537,39 @@
         ];
 
         // ============================================================
-        //  人数カラム選択肢更新
+        //  ユーティリティ
         // ============================================================
-        function updateWeightColumnOptions() {
-            const headers = state.headers;
-            const current = weightColumnSelect.value;
-            weightColumnSelect.innerHTML = headers.map(h =>
-                '<option value="' + h + '">' + h + '</option>'
-            ).join('');
-            if (headers.includes(current)) {
-                weightColumnSelect.value = current;
-            } else if (headers.length > 0) {
-                weightColumnSelect.value = headers[0];
+        function getCandidates() {
+            return state.headers.filter(h => h !== WEIGHT_KEY);
+        }
+
+        function getChoicesForColumn(col) {
+            return state.choices[col] || [];
+        }
+
+        function setChoicesForColumn(col, choices) {
+            state.choices[col] = choices;
+        }
+
+        function addChoiceForColumn(col, choice) {
+            if (!state.choices[col]) state.choices[col] = [];
+            if (!state.choices[col].includes(choice)) {
+                state.choices[col].push(choice);
             }
-            state.weightColumn = weightColumnSelect.value;
         }
 
-        // ============================================================
-        //  プルダウン選択肢更新
-        // ============================================================
-        function updateSelectorOptions() {
-            const headers = state.headers;
-            const weightCol = state.weightColumn;
-            // 軸・対象用の候補（人数カラムを除外）
-            const candidates = headers.filter(h => h !== weightCol);
-
-            document.querySelectorAll('.axis-selector').forEach(sel => {
-                const current = sel.value;
-                sel.innerHTML = candidates.map(h => '<option value="' + h + '">' + h + '</option>').join('');
-                if (candidates.includes(current)) sel.value = current;
-                else if (candidates.length > 0) sel.value = candidates[0];
-            });
-            document.querySelectorAll('.target-selector').forEach(sel => {
-                const current = sel.value;
-                sel.innerHTML = candidates.map(h => '<option value="' + h + '">' + h + '</option>').join('');
-                if (candidates.includes(current)) sel.value = current;
-                else if (candidates.length > 0) sel.value = candidates[0];
-            });
-            syncSelectorsToState();
-            updateWeightColumnOptions();
-        }
-
-        function syncSelectorsToState() {
-            const axisSels = document.querySelectorAll('.axis-selector');
-            state.selectedAxes = Array.from(axisSels).map(s => s.value);
-            const targetSels = document.querySelectorAll('.target-selector');
-            state.selectedTargets = Array.from(targetSels).map(s => s.value);
+        function removeChoiceForColumn(col, choice) {
+            if (state.choices[col]) {
+                state.choices[col] = state.choices[col].filter(c => c !== choice);
+                if (state.choices[col].length === 0) delete state.choices[col];
+            }
         }
 
         // ============================================================
         //  セレクタレンダリング
         // ============================================================
         function renderSelectors() {
-            const candidates = state.headers.filter(h => h !== state.weightColumn);
+            const candidates = getCandidates();
 
             let axisHtml = '';
             state.selectedAxes.forEach((val, idx) => {
@@ -591,7 +603,7 @@
                 } else if (candidates.length > 0) {
                     sel.value = candidates[0];
                 }
-                sel.addEventListener('change', syncSelectorsToState);
+                sel.addEventListener('change', syncSelectors);
             });
             document.querySelectorAll('.target-selector').forEach((sel, idx) => {
                 if (state.selectedTargets[idx] && candidates.includes(state.selectedTargets[idx])) {
@@ -599,7 +611,7 @@
                 } else if (candidates.length > 0) {
                     sel.value = candidates[0];
                 }
-                sel.addEventListener('change', syncSelectorsToState);
+                sel.addEventListener('change', syncSelectors);
             });
 
             document.querySelectorAll('.del[data-type="axis"]').forEach(el => {
@@ -619,29 +631,30 @@
                 });
             });
 
-            syncSelectorsToState();
-            updateWeightColumnOptions();
+            syncSelectors();
+        }
+
+        function syncSelectors() {
+            const axisSels = document.querySelectorAll('.axis-selector');
+            state.selectedAxes = Array.from(axisSels).map(s => s.value);
+            const targetSels = document.querySelectorAll('.target-selector');
+            state.selectedTargets = Array.from(targetSels).map(s => s.value);
         }
 
         // ============================================================
         //  セレクタ追加
         // ============================================================
         addAxisSelectorBtn.addEventListener('click', () => {
-            const candidates = state.headers.filter(h => h !== state.weightColumn);
-            if (candidates.length === 0) { alert('列がありません。先に列を追加してください。'); return; }
+            const candidates = getCandidates();
+            if (candidates.length === 0) { alert('分類項目がありません。先に列を追加してください。'); return; }
             state.selectedAxes.push(candidates[0]);
             renderSelectors();
         });
 
         addTargetSelectorBtn.addEventListener('click', () => {
-            const candidates = state.headers.filter(h => h !== state.weightColumn);
-            if (candidates.length === 0) { alert('列がありません。先に列を追加してください。'); return; }
+            const candidates = getCandidates();
+            if (candidates.length === 0) { alert('分類項目がありません。先に列を追加してください。'); return; }
             state.selectedTargets.push(candidates[0]);
-            renderSelectors();
-        });
-
-        weightColumnSelect.addEventListener('change', () => {
-            state.weightColumn = weightColumnSelect.value;
             renderSelectors();
         });
 
@@ -652,65 +665,111 @@
             const headers = state.headers;
             const rows = state.rows;
 
+            // ヘッダー
             let theadHtml = '<tr><th style="width:32px; min-width:32px;">#</th>';
             headers.forEach((h, idx) => {
-                const isWeight = (h === state.weightColumn);
-                theadHtml += '<th style="min-width:80px;">' +
-                    '<div style="display:flex; align-items:center; gap:6px; justify-content:space-between;">' +
-                    '<span class="col-label" data-col="' + idx + '" style="cursor:text; font-weight:600;">' + h +
+                const isWeight = (h === WEIGHT_KEY);
+                const choices = getChoicesForColumn(h);
+                const hasChoices = choices.length > 0;
+
+                theadHtml += '<th style="min-width:120px;" class="' + (isWeight ? 'fixed-col' : '') + '">' +
+                    '<div class="col-header">' +
+                    '<span class="col-label" data-col="' + idx + '">' + h +
                     (isWeight ? ' 👤' : '') +
+                    (hasChoices ? ' ▼' : '') +
                     '</span>' +
-                    '<span class="del-col" style="cursor:pointer; color:#ef4444; font-size:14px; font-weight:700;" data-col="' +
-                    idx + '">✕</span>' +
+                    (isWeight ? '<span class="weight-badge">固定（集計の重み・数値）</span>' : '') +
+                    '<div class="col-actions">' +
+                    (isWeight ? '' : '<button class="btn btn-sm add-choice" data-col="' + idx +
+                        '">+ 選択肢追加</button>') +
+                    (isWeight ? '' : '<button class="btn btn-sm del-col" data-col="' + idx + '">✕ 列削除</button>') +
                     '</div>' +
-                    (isWeight ? '<div style="font-size:10px; color:#10b981; font-weight:400;">人数カラム</div>' : '') +
+                    (hasChoices && !isWeight ? '<div class="choice-tags">' +
+                        choices.map(c => '<span class="choice-tag">' + c +
+                            ' <span class="del-choice" data-col="' + h + '" data-choice="' + c + '">✕</span></span>'
+                            ).join('') +
+                        '</div>' : '') +
+                    '</div>' +
                     '</th>';
             });
             theadHtml += '<th style="width:32px; min-width:32px;"></th></tr>';
             editorHead.innerHTML = theadHtml;
 
-            // 列名編集
+            // イベント: 列名編集
             editorHead.querySelectorAll('.col-label').forEach(el => {
                 el.addEventListener('dblclick', function() {
                     const idx = parseInt(this.dataset.col);
                     const current = state.headers[idx];
                     const newName = prompt('列名を入力してください:', current);
-                    if (newName && newName.trim() && newName.trim() !== current) {
-                        const newKey = newName.trim();
-                        if (state.headers.includes(newKey) && state.headers.indexOf(newKey) !== idx) {
-                            alert('同じ名前の列が既に存在します。');
-                            return;
-                        }
-                        state.rows.forEach(row => {
-                            if (row[current] !== undefined) {
-                                row[newKey] = row[current];
-                                delete row[current];
-                            }
-                        });
-                        state.headers[idx] = newKey;
-                        // 人数カラムが変更されたら更新
-                        if (state.weightColumn === current) {
-                            state.weightColumn = newKey;
-                        }
-                        renderEditor();
-                        renderSelectors();
-                        updateStatus();
+                    if (!newName || !newName.trim() || newName.trim() === current) return;
+                    const newKey = newName.trim();
+                    if (state.headers.includes(newKey) && state.headers.indexOf(newKey) !== idx) {
+                        alert('同じ名前の列が既に存在します。');
+                        return;
                     }
+                    // 選択肢のキーを更新
+                    if (state.choices[current]) {
+                        state.choices[newKey] = state.choices[current];
+                        delete state.choices[current];
+                    }
+                    state.rows.forEach(row => {
+                        if (row[current] !== undefined) {
+                            row[newKey] = row[current];
+                            delete row[current];
+                        }
+                    });
+                    state.headers[idx] = newKey;
+                    // selectedAxes/Targets 更新
+                    state.selectedAxes = state.selectedAxes.map(a => a === current ? newKey : a);
+                    state.selectedTargets = state.selectedTargets.map(t => t === current ? newKey : t);
+                    renderEditor();
+                    renderSelectors();
+                    updateStatus();
                 });
             });
 
-            // 列削除
+            // イベント: 選択肢追加
+            editorHead.querySelectorAll('.add-choice').forEach(el => {
+                el.addEventListener('click', function() {
+                    const idx = parseInt(this.dataset.col);
+                    const colName = state.headers[idx];
+                    if (colName === WEIGHT_KEY) return;
+                    const choice = prompt('選択肢を入力してください（例：20代）:');
+                    if (!choice || !choice.trim()) return;
+                    addChoiceForColumn(colName, choice.trim());
+                    renderEditor();
+                });
+            });
+
+            // イベント: 選択肢削除
+            editorHead.querySelectorAll('.del-choice').forEach(el => {
+                el.addEventListener('click', function() {
+                    const col = this.dataset.col;
+                    const choice = this.dataset.choice;
+                    if (!confirm('選択肢 "' + choice + '" を削除しますか？')) return;
+                    removeChoiceForColumn(col, choice);
+                    // 該当の値を持つ行をクリア
+                    state.rows.forEach(row => {
+                        if (row[col] === choice) row[col] = '';
+                    });
+                    renderEditor();
+                });
+            });
+
+            // イベント: 列削除（人数カラムは削除不可）
             editorHead.querySelectorAll('.del-col').forEach(el => {
                 el.addEventListener('click', function() {
                     const idx = parseInt(this.dataset.col);
-                    if (state.headers.length <= 1) { alert('列は少なくとも1つ必要です。'); return; }
                     const colName = state.headers[idx];
-                    if (!confirm('列 "' + colName + '" を削除しますか？（データも削除されます）')) return;
+                    if (colName === WEIGHT_KEY) {
+                        alert('人数カラムは削除できません。');
+                        return;
+                    }
+                    if (state.headers.length <= 2) { alert('分類項目は少なくとも1つ必要です。'); return; }
+                    if (!confirm('列 "' + colName + '" を削除しますか？')) return;
                     state.headers.splice(idx, 1);
                     state.rows.forEach(row => { delete row[colName]; });
-                    if (state.weightColumn === colName) {
-                        state.weightColumn = state.headers[0] || '';
-                    }
+                    delete state.choices[colName];
                     state.selectedAxes = state.selectedAxes.filter(a => a !== colName);
                     state.selectedTargets = state.selectedTargets.filter(t => t !== colName);
                     renderEditor();
@@ -731,12 +790,40 @@
                     tbodyHtml += '<td class="row-num">' + (ri + 1) + '</td>';
                     headers.forEach((h) => {
                         const val = row[h] || '';
-                        const isWeight = (h === state.weightColumn);
-                        const inputType = isWeight ? 'number' : 'text';
-                        const step = isWeight ? ' step="1" min="0"' : '';
-                        tbodyHtml += '<td><input type="' + inputType + '" value="' + val.replace(/"/g,
-                                '&quot;') + '" data-row="' + ri + '" data-col="' + h + '"' + step +
-                            '></td>';
+                        const isWeight = (h === WEIGHT_KEY);
+                        const choices = getChoicesForColumn(h);
+
+                        if (isWeight) {
+                            // 人数カラムは数値入力
+                            tbodyHtml += '<td><input type="number" value="' + val.replace(/"/g,
+                                    '&quot;') + '" data-row="' + ri + '" data-col="' + h +
+                                '" step="1" min="0"></td>';
+                        } else if (choices.length > 0) {
+                            // 選択肢がある場合はプルダウン + テキスト入力併用
+                            const options = ['<option value="">(選択してください)'];
+                            choices.forEach(c => {
+                                options.push('<option value="' + c + '"' + (val === c ? ' selected' :
+                                    '') + '>' + c + '</option>');
+                            });
+                            // 自由入力用にカスタム値を保持
+                            const isCustom = val && !choices.includes(val);
+                            if (isCustom) {
+                                options.push('<option value="' + val + '" selected>' + val + ' (カスタム)' +
+                                    '</option>');
+                            }
+                            tbodyHtml += '<td>' +
+                                '<select data-row="' + ri + '" data-col="' + h + '" style="margin-bottom:2px;">' +
+                                options.join('') +
+                                '</select>' +
+                                '<input type="text" placeholder="直接入力（自由）" value="' + (isCustom ? val :
+                                    '') + '" data-row="' + ri + '" data-col="' + h +
+                                '" style="font-size:12px; padding:3px 6px; margin-top:2px;">' +
+                                '</td>';
+                        } else {
+                            // 選択肢がない場合はテキスト入力
+                            tbodyHtml += '<td><input type="text" value="' + val.replace(/"/g, '&quot;') +
+                                '" data-row="' + ri + '" data-col="' + h + '"></td>';
+                        }
                     });
                     tbodyHtml += '<td class="row-del" data-index="' + ri + '">✕</td>';
                     tbodyHtml += '</tr>';
@@ -754,7 +841,7 @@
                 });
             });
 
-            // セル入力
+            // セル入力（テキスト / 数値）
             editorBody.querySelectorAll('input[data-row]').forEach(inp => {
                 inp.addEventListener('change', function() {
                     const ri = parseInt(this.dataset.row);
@@ -766,6 +853,65 @@
                 inp.addEventListener('input', function() {
                     const ri = parseInt(this.dataset.row);
                     const col = this.dataset.col;
+                    if (state.rows[ri]) {
+                        state.rows[ri][col] = this.value;
+                    }
+                });
+            });
+
+            // セル入力（プルダウン）
+            editorBody.querySelectorAll('select[data-row]').forEach(sel => {
+                sel.addEventListener('change', function() {
+                    const ri = parseInt(this.dataset.row);
+                    const col = this.dataset.col;
+                    if (state.rows[ri]) {
+                        state.rows[ri][col] = this.value;
+                    }
+                    // 同じ行のテキスト入力と同期
+                    const textInput = this.parentElement.querySelector('input[data-row="' + ri + '"][data-col="' +
+                        col + '"]');
+                    if (textInput) {
+                        textInput.value = this.value;
+                    }
+                });
+            });
+
+            // テキスト入力とプルダウンの連携（逆方向）
+            editorBody.querySelectorAll('input[data-row]').forEach(inp => {
+                inp.addEventListener('input', function() {
+                    const ri = parseInt(this.dataset.row);
+                    const col = this.dataset.col;
+                    const select = this.parentElement.querySelector('select[data-row="' + ri + '"][data-col="' +
+                        col + '"]');
+                    if (select) {
+                        const val = this.value;
+                        const options = select.querySelectorAll('option');
+                        let found = false;
+                        options.forEach(opt => {
+                            if (opt.value === val) {
+                                select.value = val;
+                                found = true;
+                            }
+                        });
+                        if (!found && val) {
+                            // 選択肢にない値は「カスタム」として追加
+                            const existingCustom = Array.from(options).find(opt => opt.text.includes('カスタム'));
+                            if (existingCustom) {
+                                existingCustom.value = val;
+                                existingCustom.text = val + ' (カスタム)';
+                                select.value = val;
+                            } else {
+                                const opt = document.createElement('option');
+                                opt.value = val;
+                                opt.text = val + ' (カスタム)';
+                                opt.selected = true;
+                                select.appendChild(opt);
+                                select.value = val;
+                            }
+                        } else if (!val) {
+                            select.value = '';
+                        }
+                    }
                     if (state.rows[ri]) {
                         state.rows[ri][col] = this.value;
                     }
@@ -790,21 +936,28 @@
         }
 
         function addColumn() {
-            const name = prompt('新しい列の名前を入力してください:');
+            const name = prompt('新しい分類項目の名前を入力してください:');
             if (!name || !name.trim()) return;
             const newKey = name.trim();
+            if (newKey === WEIGHT_KEY) {
+                alert('「' + WEIGHT_KEY + '」は固定カラムです。別の名前を入力してください。');
+                return;
+            }
             if (state.headers.includes(newKey)) {
                 alert('同じ名前の列が既に存在します。');
                 return;
             }
-            state.headers.push(newKey);
+            const weightIdx = state.headers.indexOf(WEIGHT_KEY);
+            state.headers.splice(weightIdx, 0, newKey);
             state.rows.forEach(row => { row[newKey] = ''; });
+            // 選択肢は空で初期化
+            state.choices[newKey] = [];
             renderEditor();
             renderSelectors();
         }
 
         function clearData() {
-            if (!confirm('すべての行データを削除しますか？（列は残ります）')) return;
+            if (!confirm('すべての行データを削除しますか？（列と選択肢は残ります）')) return;
             state.rows = [];
             renderEditor();
         }
@@ -816,13 +969,12 @@
         // ============================================================
         //  集計（人数カラムを重みとして使用）
         // ============================================================
-        function generateAllCombinations(data, axes, target, weightCol) {
+        function generateAllCombinations(data, axes, target) {
             if (data.length === 0 || axes.length === 0) return [];
 
-            // データを展開（人数分だけ繰り返す）
             const expanded = [];
             data.forEach(row => {
-                const weight = parseInt(row[weightCol]) || 0;
+                const weight = parseInt(row[WEIGHT_KEY]) || 0;
                 if (weight <= 0) return;
                 for (let i = 0; i < weight; i++) {
                     const copy = {};
@@ -840,19 +992,13 @@
 
             const results = [];
 
-            results.push({
-                label: '全体',
-                filteredData: expanded,
-            });
+            results.push({ label: '全体', filteredData: expanded });
 
             axes.forEach((axis, idx) => {
                 const unique = axisValues[idx];
                 unique.forEach(val => {
                     const filtered = expanded.filter(row => String(row[axis] || '不明') === val);
-                    results.push({
-                        label: axis + ': ' + val,
-                        filteredData: filtered,
-                    });
+                    results.push({ label: axis + ': ' + val, filteredData: filtered });
                 });
             });
 
@@ -870,10 +1016,7 @@
                                 return combo.every((a, i) => String(row[a] || '不明') === vals[i]);
                             });
                             if (filtered.length === 0) continue;
-                            results.push({
-                                label: label,
-                                filteredData: filtered,
-                            });
+                            results.push({ label: label, filteredData: filtered });
                         }
                     }
                 }
@@ -923,45 +1066,33 @@
         execBtn.addEventListener('click', async () => {
             const data = state.rows;
             if (data.length === 0) {
-                alert('データがありません。行を追加してデータを入力してください。');
+                alert('データがありません。行を追加してください。');
                 return;
             }
 
             const axes = state.selectedAxes;
             const targets = state.selectedTargets;
             const headers = state.headers;
-            const weightCol = state.weightColumn;
 
-            if (axes.length === 0) {
-                alert('集計軸を少なくとも1つ選択してください。');
-                return;
-            }
-            if (targets.length === 0) {
-                alert('集計対象を少なくとも1つ選択してください。');
-                return;
-            }
-            if (!weightCol || !headers.includes(weightCol)) {
-                alert('人数カラムが正しく設定されていません。');
-                return;
-            }
+            if (axes.length === 0) { alert('集計軸を選択してください。'); return; }
+            if (targets.length === 0) { alert('集計対象を選択してください。'); return; }
+            if (!headers.includes(WEIGHT_KEY)) { alert('人数カラムが見つかりません。'); return; }
 
             const allAxesExist = axes.every(a => headers.includes(a));
             const allTargetsExist = targets.every(t => headers.includes(t));
             if (!allAxesExist || !allTargetsExist) {
-                alert('選択した項目がエディタの列見出しに存在しません。');
+                alert('選択した項目が列見出しに存在しません。');
                 return;
             }
 
             const target = targets[0];
 
-            // 人数カラムの数値チェック
-            let hasValidWeight = false;
+            let hasValid = false;
             data.forEach(row => {
-                const w = parseInt(row[weightCol]);
-                if (w > 0) hasValidWeight = true;
+                if (parseInt(row[WEIGHT_KEY]) > 0) hasValid = true;
             });
-            if (!hasValidWeight) {
-                alert('人数カラムに有効な数値（1以上の整数）がありません。');
+            if (!hasValid) {
+                alert('「' + WEIGHT_KEY + '」列に有効な数値（1以上の整数）がありません。');
                 return;
             }
 
@@ -973,7 +1104,7 @@
             try {
                 const zip = new JSZip();
                 const folder = zip.folder('円グラフ');
-                const allCombos = generateAllCombinations(data, axes, target, weightCol);
+                const allCombos = generateAllCombinations(data, axes, target);
 
                 let completed = 0;
                 const total = allCombos.length;
@@ -1080,7 +1211,7 @@
         // ============================================================
         resetBtn.addEventListener('click', () => {
             if (!confirm('すべてのデータと設定をリセットしますか？')) return;
-            state.headers = ['性別', '年代', '改善分野', '人数'];
+            state.headers = ['性別', '年代', '改善分野', WEIGHT_KEY];
             state.rows = [
                 { '性別': '男性', '年代': '20代', '改善分野': '道路整備', '人数': '45' },
                 { '性別': '男性', '年代': '20代', '改善分野': '子育て支援', '人数': '30' },
@@ -1089,9 +1220,13 @@
                 { '性別': '女性', '年代': '30代', '改善分野': '子育て支援', '人数': '35' },
                 { '性別': '女性', '年代': '20代', '改善分野': '防災対策', '人数': '20' },
             ];
+            state.choices = {
+                '性別': ['男性', '女性'],
+                '年代': ['20代', '30代', '40代', '50代以上'],
+                '改善分野': ['道路整備', '子育て支援', '防災対策', '観光振興', 'ごみ処理'],
+            };
             state.selectedAxes = ['性別', '年代'];
             state.selectedTargets = ['改善分野'];
-            state.weightColumn = '人数';
             state.zipBlob = null;
             downloadBtn.disabled = true;
             progressFill.style.width = '0%';
@@ -1107,7 +1242,7 @@
         // ============================================================
         renderSelectors();
         renderEditor();
-        statusMsg.textContent = 'サンプルデータが入っています。ケースごとに人数を入力してから実行してください。';
+        statusMsg.textContent = 'サンプルデータが入っています。各列の「選択肢を追加」でプルダウン化できます。';
     </script>
 
 </body>
