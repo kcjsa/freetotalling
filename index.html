@@ -17,7 +17,7 @@
             padding: 0;
         }
         body {
-            font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Segoe UI', 'Meiryo', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
             background: #f5f7fb;
             padding: 30px 20px;
             color: #1e293b;
@@ -359,14 +359,24 @@
             color: #92400e;
             margin-top: 10px;
         }
-        /* グラフ描画用の隠しコンテナ */
+
+        /* グラフ描画用コンテナ - 画面上に表示 */
         #chartContainer {
-            position: absolute;
-            left: -9999px;
-            top: -9999px;
-            width: 800px;
-            height: 800px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            opacity: 0.01;
+            pointer-events: none;
+            z-index: -1;
         }
+        #chartContainer canvas {
+            width: 800px !important;
+            height: 800px !important;
+        }
+
         @media (max-width: 640px) {
             .container {
                 padding: 20px 16px;
@@ -404,7 +414,6 @@
 <body>
 
     <div class="container" id="app">
-        <!-- 隠しコンテナ（グラフ描画用） -->
         <div id="chartContainer"></div>
 
         <h1>
@@ -416,7 +425,7 @@
             人数カラムは固定（数値入力）です。
         </div>
 
-        <!-- STEP1 集計設定 -->
+        <!-- STEP1 -->
         <div class="section">
             <div class="section-title">
                 <span>ステップ1：集計設定</span>
@@ -436,17 +445,15 @@
             </div>
             <div class="weight-info">
                 <strong>「人数」カラムは固定です。</strong> 数値（半角数字）を入力してください。
-                それ以外のカラムは「選択肢を追加」でプルダウン化できます。
             </div>
         </div>
 
-        <!-- STEP2 データ入力 -->
+        <!-- STEP2 -->
         <div class="section">
             <div class="section-title">
                 <span>ステップ2：データ入力</span>
                 <span class="badge green">選択肢追加でプルダウン化</span>
             </div>
-
             <div class="flex-between">
                 <div style="display:flex; gap:10px; flex-wrap:wrap;">
                     <button class="btn" id="addRowBtn">+ 行を追加</button>
@@ -455,22 +462,19 @@
                 </div>
                 <div class="data-status" id="dataStatus">行数: 0 ｜ 列数: 0</div>
             </div>
-
             <div class="editor-wrap">
                 <table id="editorTable">
                     <thead id="editorHead"></thead>
                     <tbody id="editorBody"></tbody>
                 </table>
             </div>
-
             <div style="margin-top:12px; font-size:13px; color:#94a3b8;">
                 * 列名をダブルクリックで編集できます。<br>
-                * 「選択肢を追加」ボタンでその列の選択肢を追加すると、セルがプルダウンになります。<br>
-                * プルダウンにない値を直接入力したい場合は、プルダウンを選ばずにテキスト入力も可能です。
+                * 「選択肢を追加」ボタンでその列の選択肢を追加すると、セルがプルダウンになります。
             </div>
         </div>
 
-        <!-- STEP3 実行 -->
+        <!-- STEP3 -->
         <div class="section">
             <div class="section-title">
                 <span>ステップ3：全パターン集計＆ZIP出力</span>
@@ -540,6 +544,9 @@
         const statusMsg = document.getElementById('statusMsg');
         const chartContainer = document.getElementById('chartContainer');
 
+        // 日本語対応フォント
+        const FONT_FAMILY = "'Meiryo', 'Hiragino Sans', 'Noto Sans JP', 'Yu Gothic', 'MS Gothic', sans-serif";
+
         const COLORS = [
             '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6',
             '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#84cc16',
@@ -573,7 +580,7 @@
         }
 
         // ============================================================
-        //  セレクタレンダリング
+        //  セレクタ
         // ============================================================
         function renderSelectors() {
             const candidates = getCandidates();
@@ -648,25 +655,22 @@
             state.selectedTargets = Array.from(targetSels).map(s => s.value);
         }
 
-        // ============================================================
-        //  セレクタ追加
-        // ============================================================
         addAxisSelectorBtn.addEventListener('click', () => {
             const candidates = getCandidates();
-            if (candidates.length === 0) { alert('分類項目がありません。先に列を追加してください。'); return; }
+            if (candidates.length === 0) { alert('分類項目がありません。'); return; }
             state.selectedAxes.push(candidates[0]);
             renderSelectors();
         });
 
         addTargetSelectorBtn.addEventListener('click', () => {
             const candidates = getCandidates();
-            if (candidates.length === 0) { alert('分類項目がありません。先に列を追加してください。'); return; }
+            if (candidates.length === 0) { alert('分類項目がありません。'); return; }
             state.selectedTargets.push(candidates[0]);
             renderSelectors();
         });
 
         // ============================================================
-        //  エディタ描画
+        //  エディタ
         // ============================================================
         function renderEditor() {
             const headers = state.headers;
@@ -738,7 +742,7 @@
                     const idx = parseInt(this.dataset.col);
                     const colName = state.headers[idx];
                     if (colName === WEIGHT_KEY) return;
-                    const choice = prompt('選択肢を入力してください（例：20代）:');
+                    const choice = prompt('選択肢を入力してください:');
                     if (!choice || !choice.trim()) return;
                     addChoiceForColumn(colName, choice.trim());
                     renderEditor();
@@ -840,21 +844,17 @@
                 });
             });
 
-            // セル入力
+            // 入力
             editorBody.querySelectorAll('input[data-row]').forEach(inp => {
                 inp.addEventListener('change', function() {
                     const ri = parseInt(this.dataset.row);
                     const col = this.dataset.col;
-                    if (state.rows[ri]) {
-                        state.rows[ri][col] = this.value;
-                    }
+                    if (state.rows[ri]) state.rows[ri][col] = this.value;
                 });
                 inp.addEventListener('input', function() {
                     const ri = parseInt(this.dataset.row);
                     const col = this.dataset.col;
-                    if (state.rows[ri]) {
-                        state.rows[ri][col] = this.value;
-                    }
+                    if (state.rows[ri]) state.rows[ri][col] = this.value;
                 });
             });
 
@@ -862,68 +862,18 @@
                 sel.addEventListener('change', function() {
                     const ri = parseInt(this.dataset.row);
                     const col = this.dataset.col;
-                    if (state.rows[ri]) {
-                        state.rows[ri][col] = this.value;
-                    }
+                    if (state.rows[ri]) state.rows[ri][col] = this.value;
                     const textInput = this.parentElement.querySelector('input[data-row="' + ri + '"][data-col="' +
                         col + '"]');
-                    if (textInput) {
-                        textInput.value = this.value;
-                    }
-                });
-            });
-
-            editorBody.querySelectorAll('input[data-row]').forEach(inp => {
-                inp.addEventListener('input', function() {
-                    const ri = parseInt(this.dataset.row);
-                    const col = this.dataset.col;
-                    const select = this.parentElement.querySelector('select[data-row="' + ri + '"][data-col="' +
-                        col + '"]');
-                    if (select) {
-                        const val = this.value;
-                        const options = select.querySelectorAll('option');
-                        let found = false;
-                        options.forEach(opt => {
-                            if (opt.value === val) {
-                                select.value = val;
-                                found = true;
-                            }
-                        });
-                        if (!found && val) {
-                            const existingCustom = Array.from(options).find(opt => opt.text.includes('カスタム'));
-                            if (existingCustom) {
-                                existingCustom.value = val;
-                                existingCustom.text = val + ' (カスタム)';
-                                select.value = val;
-                            } else {
-                                const opt = document.createElement('option');
-                                opt.value = val;
-                                opt.text = val + ' (カスタム)';
-                                opt.selected = true;
-                                select.appendChild(opt);
-                                select.value = val;
-                            }
-                        } else if (!val) {
-                            select.value = '';
-                        }
-                    }
-                    if (state.rows[ri]) {
-                        state.rows[ri][col] = this.value;
-                    }
+                    if (textInput) textInput.value = this.value;
                 });
             });
 
             updateStatus();
         }
 
-        // ============================================================
-        //  行・列操作
-        // ============================================================
         function addRow() {
-            if (state.headers.length === 0) {
-                alert('列がありません。先に列を追加してください。');
-                return;
-            }
+            if (state.headers.length === 0) { alert('列がありません。'); return; }
             const newRow = {};
             state.headers.forEach(h => { newRow[h] = ''; });
             state.rows.push(newRow);
@@ -934,14 +884,8 @@
             const name = prompt('新しい分類項目の名前を入力してください:');
             if (!name || !name.trim()) return;
             const newKey = name.trim();
-            if (newKey === WEIGHT_KEY) {
-                alert('「' + WEIGHT_KEY + '」は固定カラムです。別の名前を入力してください。');
-                return;
-            }
-            if (state.headers.includes(newKey)) {
-                alert('同じ名前の列が既に存在します。');
-                return;
-            }
+            if (newKey === WEIGHT_KEY) { alert('「' + WEIGHT_KEY + '」は固定カラムです。'); return; }
+            if (state.headers.includes(newKey)) { alert('同じ名前の列が既に存在します。'); return; }
             const weightIdx = state.headers.indexOf(WEIGHT_KEY);
             state.headers.splice(weightIdx, 0, newKey);
             state.rows.forEach(row => { row[newKey] = ''; });
@@ -951,7 +895,7 @@
         }
 
         function clearData() {
-            if (!confirm('すべての行データを削除しますか？（列と選択肢は残ります）')) return;
+            if (!confirm('すべての行データを削除しますか？')) return;
             state.rows = [];
             renderEditor();
         }
@@ -959,6 +903,10 @@
         function updateStatus() {
             dataStatus.textContent = '行数: ' + state.rows.length + ' ｜ 列数: ' + state.headers.length;
         }
+
+        addRowBtn.addEventListener('click', addRow);
+        addColBtn.addEventListener('click', addColumn);
+        clearDataBtn.addEventListener('click', clearData);
 
         // ============================================================
         //  集計
@@ -976,7 +924,6 @@
                     expanded.push(copy);
                 }
             });
-
             if (expanded.length === 0) return [];
 
             const axisValues = axes.map(axis => {
@@ -985,7 +932,6 @@
             });
 
             const results = [];
-
             results.push({ label: '全体', filteredData: expanded });
 
             axes.forEach((axis, idx) => {
@@ -1015,7 +961,6 @@
                     }
                 }
             }
-
             return results;
         }
 
@@ -1055,14 +1000,12 @@
         }
 
         // ============================================================
-        //  円グラフをPNGとして生成（完全な真円）
+        //  円グラフ生成（完全版：日本語フォント指定 + 真円）
         // ============================================================
         function generatePieChartImage(label, labels, values) {
             return new Promise((resolve) => {
-                // コンテナをクリア
                 chartContainer.innerHTML = '';
 
-                // コンテナ内にCanvasを作成（DOMに追加しないと描画がおかしくなる）
                 const canvas = document.createElement('canvas');
                 canvas.width = 800;
                 canvas.height = 800;
@@ -1073,8 +1016,8 @@
                 const ctx = canvas.getContext('2d');
 
                 const bgColors = labels.map((_, i) => COLORS[i % COLORS.length]);
+                const total = values.reduce((a, b) => a + b, 0);
 
-                // Chart.js インスタンス作成
                 const chart = new Chart(ctx, {
                     type: 'pie',
                     data: {
@@ -1082,8 +1025,8 @@
                         datasets: [{
                             data: values,
                             backgroundColor: bgColors,
-                            borderColor: '#fff',
-                            borderWidth: 3,
+                            borderColor: '#ffffff',
+                            borderWidth: 2,
                         }]
                     },
                     options: {
@@ -1092,54 +1035,66 @@
                         aspectRatio: 1,
                         layout: {
                             padding: {
-                                top: 20,
-                                bottom: 20,
-                                left: 20,
-                                right: 20
+                                top: 40,
+                                bottom: 40,
+                                left: 40,
+                                right: 40
                             }
                         },
                         plugins: {
                             title: {
                                 display: true,
-                                text: label + ' （総数: ' + values.reduce((a, b) => a + b, 0) + '人）',
-                                font: { size: 22, weight: 'bold' },
-                                padding: { bottom: 20, top: 10 }
+                                text: label + ' （総数: ' + total + '人）',
+                                font: {
+                                    size: 22,
+                                    weight: 'bold',
+                                    family: FONT_FAMILY
+                                },
+                                padding: { bottom: 20 },
+                                color: '#1e293b'
                             },
                             legend: {
                                 position: 'bottom',
                                 labels: {
-                                    font: { size: 14 },
+                                    font: {
+                                        size: 14,
+                                        family: FONT_FAMILY
+                                    },
                                     padding: 16,
                                     usePointStyle: true,
-                                    pointStyle: 'circle'
+                                    pointStyle: 'circle',
+                                    color: '#1e293b'
                                 }
                             },
                             tooltip: {
                                 callbacks: {
                                     label: function(context) {
-                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                        const pct = total > 0 ? (context.parsed / total * 100).toFixed(1) : 0;
+                                        const total2 = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const pct = total2 > 0 ? (context.parsed / total2 * 100).toFixed(1) :
+                                            0;
                                         return context.label + ': ' + context.parsed + '人 (' + pct + '%)';
                                     }
                                 }
                             }
+                        },
+                        // フォントを明示
+                        font: {
+                            family: FONT_FAMILY
                         }
                     }
                 });
 
-                // 描画完了を待つ
+                // 描画完了を確実に待つ
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
-                        // もう一度描画を強制
                         chart.update();
                         setTimeout(() => {
-                            // PNGに変換
                             canvas.toBlob((blob) => {
                                 chart.destroy();
                                 canvas.remove();
                                 resolve(blob);
                             }, 'image/png');
-                        }, 200);
+                        }, 500);
                     });
                 });
             });
@@ -1151,7 +1106,7 @@
         execBtn.addEventListener('click', async () => {
             const data = state.rows;
             if (data.length === 0) {
-                alert('データがありません。行を追加してください。');
+                alert('データがありません。');
                 return;
             }
 
@@ -1171,13 +1126,12 @@
             }
 
             const target = targets[0];
-
             let hasValid = false;
             data.forEach(row => {
                 if (parseInt(row[WEIGHT_KEY]) > 0) hasValid = true;
             });
             if (!hasValid) {
-                alert('「' + WEIGHT_KEY + '」列に有効な数値（1以上の整数）がありません。');
+                alert('「' + WEIGHT_KEY + '」列に有効な数値がありません。');
                 return;
             }
 
@@ -1205,7 +1159,6 @@
 
                     if (labels.length === 0) continue;
 
-                    // 円グラフをPNGとして生成
                     const blob = await generatePieChartImage(label, labels, values);
                     const safeName = label.replace(/[/\\?%*:|"<>]/g, '_');
                     folder.file(safeName + '.png', blob);
@@ -1220,24 +1173,23 @@
                 state.zipBlob = zipBlob;
                 downloadBtn.disabled = false;
 
-                statusMsg.textContent = '完了！ ' + total + '個の円グラフを生成しました。ダウンロードしてください。';
+                statusMsg.textContent = '完了！ ' + total + '個の円グラフを生成しました。';
                 statusMsg.className = 'status-msg ok';
                 progressText.textContent = '完了（' + total + '個）';
 
             } catch (e) {
                 console.error(e);
-                statusMsg.textContent = 'エラーが発生しました: ' + e.message;
+                statusMsg.textContent = 'エラー: ' + e.message;
                 statusMsg.className = 'status-msg err';
             } finally {
                 execBtn.disabled = false;
                 execBtn.textContent = '全パターン集計＆ZIP生成';
-                // コンテナクリア
                 chartContainer.innerHTML = '';
             }
         });
 
         // ============================================================
-        //  ダウンロード
+        //  ダウンロード・リセット
         // ============================================================
         downloadBtn.addEventListener('click', () => {
             if (state.zipBlob) {
@@ -1245,11 +1197,8 @@
             }
         });
 
-        // ============================================================
-        //  リセット
-        // ============================================================
         resetBtn.addEventListener('click', () => {
-            if (!confirm('すべてのデータと設定をリセットしますか？')) return;
+            if (!confirm('すべてリセットしますか？')) return;
             state.headers = ['性別', '年代', '改善分野', WEIGHT_KEY];
             state.rows = [
                 { '性別': '男性', '年代': '20代', '改善分野': '道路整備', '人数': '45' },
@@ -1270,7 +1219,7 @@
             downloadBtn.disabled = true;
             progressFill.style.width = '0%';
             progressText.textContent = '待機中...';
-            statusMsg.textContent = 'リセットしました。データを編集してから実行してください。';
+            statusMsg.textContent = 'リセットしました。';
             statusMsg.className = 'status-msg';
             chartContainer.innerHTML = '';
             renderSelectors();
