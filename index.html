@@ -23,7 +23,7 @@
             color: #1e293b;
         }
         .container {
-            max-width: 1000px;
+            max-width: 1100px;
             margin: 0 auto;
             background: #ffffff;
             border-radius: 24px;
@@ -71,6 +71,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            flex-wrap: wrap;
         }
         .section-title .badge {
             background: #3b82f6;
@@ -170,39 +171,102 @@
             align-items: center;
             gap: 16px;
         }
+        .flex-between {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
 
-        .dropzone {
-            border: 2px dashed #cbd5e1;
-            border-radius: 20px;
-            padding: 36px 20px;
-            text-align: center;
-            background: #fafcff;
-            transition: 0.2s;
-            cursor: pointer;
-            margin-top: 6px;
+        /* ---- エディタ ---- */
+        .editor-wrap {
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            margin-top: 10px;
         }
-        .dropzone.dragover {
-            border-color: #3b82f6;
-            background: #eff6ff;
-        }
-        .dropzone .icon {
-            font-size: 40px;
-            display: block;
-            margin-bottom: 8px;
-        }
-        .dropzone .file-name {
-            font-weight: 600;
-            color: #0f172a;
-            margin-top: 6px;
-        }
-        .dropzone .hint {
-            color: #94a3b8;
+        .editor-wrap table {
+            width: 100%;
+            border-collapse: collapse;
             font-size: 14px;
+            min-width: 300px;
         }
-        #fileInput {
-            display: none;
+        .editor-wrap th {
+            background: #f1f5f9;
+            text-align: left;
+            padding: 8px 12px;
+            font-weight: 600;
+            border-bottom: 2px solid #e2e8f0;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        .editor-wrap td {
+            padding: 4px 6px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+        .editor-wrap td input,
+        .editor-wrap td select {
+            width: 100%;
+            min-width: 60px;
+            padding: 6px 8px;
+            border: 1px solid #d1d9e6;
+            border-radius: 6px;
+            font-size: 13px;
+            background: #fff;
+            transition: 0.15s;
+            box-sizing: border-box;
+        }
+        .editor-wrap td input:focus,
+        .editor-wrap td select:focus {
+            border-color: #3b82f6;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+        .editor-wrap td input[type="text"] {
+            min-width: 70px;
+        }
+        .editor-wrap .row-del {
+            cursor: pointer;
+            color: #ef4444;
+            font-weight: 700;
+            font-size: 16px;
+            text-align: center;
+            padding: 0 6px;
+            user-select: none;
+            transition: 0.15s;
+        }
+        .editor-wrap .row-del:hover {
+            transform: scale(1.3);
+        }
+        .editor-wrap .row-num {
+            color: #94a3b8;
+            font-size: 12px;
+            text-align: center;
+            font-weight: 500;
+            min-width: 28px;
+        }
+        .editor-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 12px;
+            align-items: center;
+        }
+        .editor-toolbar .btn {
+            font-size: 13px;
+            padding: 6px 16px;
+        }
+        .data-status {
+            font-size: 13px;
+            color: #475569;
+            margin-left: auto;
         }
 
+        /* ---- プレビュー ---- */
         .preview-wrap {
             overflow-x: auto;
             margin-top: 14px;
@@ -271,6 +335,10 @@
             color: #991b1b;
         }
 
+        .hidden {
+            display: none !important;
+        }
+
         @media (max-width: 640px) {
             .container {
                 padding: 20px 16px;
@@ -286,6 +354,19 @@
                 flex-direction: column;
                 align-items: stretch;
             }
+            .flex-between {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .editor-wrap td input,
+            .editor-wrap td select {
+                min-width: 40px;
+                font-size: 12px;
+                padding: 4px 6px;
+            }
+            .data-status {
+                margin-left: 0;
+            }
         }
     </style>
 </head>
@@ -294,13 +375,13 @@
     <div class="container" id="app">
         <h1>
             アンケート円グラフ一括ZIP出力
-            <small>フロントエンド完結</small>
+            <small>エディタ内蔵</small>
         </h1>
         <div class="sub">
-            CSVを読み込んで、指定した軸（性別・年代など）の全組み合わせで円グラフを生成し、ZIPで一括ダウンロードします。
+            項目を設定し、表に直接データを入力してください。CSVファイルは不要です。
         </div>
 
-        <!-- ===== STEP1 ===== -->
+        <!-- ===== STEP1 項目設定 ===== -->
         <div class="section">
             <div class="section-title">
                 <span>ステップ1：項目設定</span>
@@ -323,35 +404,54 @@
             </div>
         </div>
 
-        <!-- ===== STEP2 ===== -->
+        <!-- ===== STEP2 データ入力（エディタ） ===== -->
         <div class="section">
             <div class="section-title">
-                <span>ステップ2：CSVアップロード</span>
-                <span class="badge">ヘッダー行必須</span>
+                <span>ステップ2：データ入力</span>
+                <span class="badge">表に直接入力</span>
             </div>
-            <div class="dropzone" id="dropzone">
-                <div class="icon">+</div>
-                <div style="font-weight:600; font-size:16px;">クリックまたはドラッグ＆ドロップ</div>
-                <div class="hint">CSVファイル（.csv）を選択してください</div>
-                <div class="file-name" id="fileName">まだファイルが選択されていません</div>
-            </div>
-            <input type="file" id="fileInput" accept=".csv">
 
-            <div id="previewArea" style="display:none; margin-top:16px;">
-                <div style="font-weight:500; margin-bottom:6px;">データプレビュー（先頭5行）</div>
-                <div class="preview-wrap" id="previewTableWrap"></div>
-                <div style="margin-top:8px; font-size:14px; color:#475569;" id="rowCount"></div>
+            <div class="flex-between">
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <button class="btn" id="addRowBtn">+ 行を追加</button>
+                    <button class="btn" id="addColBtn">+ 列（項目）を追加</button>
+                    <button class="btn" id="clearDataBtn">全削除</button>
+                </div>
+                <div class="data-status" id="dataStatus">行数: 0</div>
+            </div>
+
+            <div class="editor-wrap" id="editorWrap">
+                <table id="editorTable">
+                    <thead id="editorHead">
+                        <tr>
+                            <th style="width:32px; min-width:32px;">#</th>
+                            <th style="min-width:80px;">列1</th>
+                            <th style="width:32px; min-width:32px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="editorBody">
+                        <tr>
+                            <td class="row-num">1</td>
+                            <td><input type="text" value="サンプルデータ" placeholder="値を入力"></td>
+                            <td class="row-del" data-index="0">✕</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="margin-top:12px; font-size:13px; color:#94a3b8;">
+                * 列見出し（ヘッダー）をクリックすると編集できます。
             </div>
         </div>
 
-        <!-- ===== STEP3 ===== -->
+        <!-- ===== STEP3 実行＆ダウンロード ===== -->
         <div class="section">
             <div class="section-title">
                 <span>ステップ3：全パターン集計＆ZIP出力</span>
             </div>
 
             <div class="flex">
-                <button class="btn btn-primary" id="execBtn" disabled>全パターン集計＆ZIP生成</button>
+                <button class="btn btn-primary" id="execBtn">全パターン集計＆ZIP生成</button>
                 <button class="btn btn-success" id="downloadBtn" disabled>ZIPをダウンロード</button>
                 <button class="btn" id="resetBtn">リセット</button>
             </div>
@@ -361,7 +461,7 @@
                 <div class="progress-text" id="progressText">待機中...</div>
             </div>
 
-            <div class="status-msg" id="statusMsg">CSVを読み込み、項目を設定してから「集計＆ZIP生成」を押してください。</div>
+            <div class="status-msg" id="statusMsg">データを入力し、項目を設定してから「集計＆ZIP生成」を押してください。</div>
         </div>
 
         <hr>
@@ -377,8 +477,8 @@
         const state = {
             axes: ['性別', '年代'],
             targets: ['改善分野'],
-            csvData: [],
-            headers: [],
+            headers: [], // エディタの列見出し
+            rows: [], // 各行のデータ（オブジェクト配列）
             zipBlob: null,
         };
 
@@ -389,12 +489,12 @@
         const targetGroup = document.getElementById('targetGroup');
         const addAxisBtn = document.getElementById('addAxisBtn');
         const addTargetBtn = document.getElementById('addTargetBtn');
-        const fileInput = document.getElementById('fileInput');
-        const dropzone = document.getElementById('dropzone');
-        const fileName = document.getElementById('fileName');
-        const previewArea = document.getElementById('previewArea');
-        const previewTableWrap = document.getElementById('previewTableWrap');
-        const rowCount = document.getElementById('rowCount');
+        const editorHead = document.getElementById('editorHead');
+        const editorBody = document.getElementById('editorBody');
+        const addRowBtn = document.getElementById('addRowBtn');
+        const addColBtn = document.getElementById('addColBtn');
+        const clearDataBtn = document.getElementById('clearDataBtn');
+        const dataStatus = document.getElementById('dataStatus');
         const execBtn = document.getElementById('execBtn');
         const downloadBtn = document.getElementById('downloadBtn');
         const resetBtn = document.getElementById('resetBtn');
@@ -410,7 +510,19 @@
         ];
 
         // ============================================================
-        //  レンダリング
+        //  初期データ
+        // ============================================================
+        const defaultHeaders = ['性別', '年代', '改善分野'];
+        const defaultRows = [
+            { '性別': '男性', '年代': '20代', '改善分野': '道路整備' },
+            { '性別': '女性', '年代': '30代', '改善分野': '子育て支援' },
+            { '性別': '男性', '年代': '20代', '改善分野': '防災対策' },
+            { '性別': '女性', '年代': '40代', '改善分野': '道路整備' },
+            { '性別': '男性', '年代': '30代', '改善分野': '観光振興' },
+        ];
+
+        // ============================================================
+        //  レンダリング：タグ（集計軸・対象）
         // ============================================================
         function renderTags() {
             axisGroup.innerHTML = state.axes.map((a, i) =>
@@ -433,15 +545,157 @@
                         state.targets.splice(idx, 1);
                     }
                     renderTags();
-                    updateExecButton();
                 });
             });
-
-            updateExecButton();
         }
 
         // ============================================================
-        //  追加
+        //  エディタ描画
+        // ============================================================
+        function renderEditor() {
+            const headers = state.headers;
+            const rows = state.rows;
+
+            // ヘッダー行
+            let theadHtml = '<tr><th style="width:32px; min-width:32px;">#</th>';
+            headers.forEach((h, idx) => {
+                theadHtml += '<th style="min-width:80px;" data-col="' + idx + '">' +
+                    '<input type="text" value="' + h + '" style="width:100%; border:none; background:transparent; font-weight:600; font-size:14px; text-align:left; padding:4px 0;" data-header="' +
+                    idx + '">' +
+                    '</th>';
+            });
+            theadHtml += '<th style="width:32px; min-width:32px;"></th></tr>';
+            editorHead.innerHTML = theadHtml;
+
+            // ヘッダー入力変更イベント
+            editorHead.querySelectorAll('input[data-header]').forEach(inp => {
+                inp.addEventListener('change', function() {
+                    const idx = parseInt(this.dataset.header);
+                    const val = this.value.trim();
+                    if (val) {
+                        // ヘッダー名変更 → データのキーも更新
+                        const oldKey = state.headers[idx];
+                        const newKey = val;
+                        if (oldKey !== newKey) {
+                            state.rows.forEach(row => {
+                                if (row[oldKey] !== undefined) {
+                                    row[newKey] = row[oldKey];
+                                    delete row[oldKey];
+                                }
+                            });
+                            state.headers[idx] = newKey;
+                        }
+                    } else {
+                        this.value = state.headers[idx];
+                    }
+                    updateStatus();
+                });
+            });
+
+            // データ行
+            let tbodyHtml = '';
+            if (rows.length === 0) {
+                tbodyHtml =
+                    '<tr><td class="row-num" style="text-align:center; color:#94a3b8; padding:20px;" colspan="' + (headers
+                        .length + 2) + '">データがありません。「+ 行を追加」してください</td></tr>';
+            } else {
+                rows.forEach((row, ri) => {
+                    tbodyHtml += '<tr>';
+                    tbodyHtml += '<td class="row-num">' + (ri + 1) + '</td>';
+                    headers.forEach((h) => {
+                        const val = row[h] || '';
+                        tbodyHtml += '<td><input type="text" value="' + val.replace(/"/g, '&quot;') +
+                            '" data-row="' + ri + '" data-col="' + h + '"></td>';
+                    });
+                    tbodyHtml += '<td class="row-del" data-index="' + ri + '">✕</td>';
+                    tbodyHtml += '</tr>';
+                });
+            }
+            editorBody.innerHTML = tbodyHtml;
+
+            // 行削除イベント
+            editorBody.querySelectorAll('.row-del').forEach(el => {
+                el.addEventListener('click', function() {
+                    const idx = parseInt(this.dataset.index);
+                    state.rows.splice(idx, 1);
+                    renderEditor();
+                    updateStatus();
+                });
+            });
+
+            // セル入力変更イベント
+            editorBody.querySelectorAll('input[data-row]').forEach(inp => {
+                inp.addEventListener('change', function() {
+                    const ri = parseInt(this.dataset.row);
+                    const col = this.dataset.col;
+                    if (state.rows[ri]) {
+                        state.rows[ri][col] = this.value;
+                    }
+                });
+                inp.addEventListener('input', function() {
+                    const ri = parseInt(this.dataset.row);
+                    const col = this.dataset.col;
+                    if (state.rows[ri]) {
+                        state.rows[ri][col] = this.value;
+                    }
+                });
+            });
+
+            updateStatus();
+        }
+
+        // ============================================================
+        //  行・列操作
+        // ============================================================
+        function addRow() {
+            const headers = state.headers;
+            if (headers.length === 0) {
+                alert('列がありません。先に列を追加してください。');
+                return;
+            }
+            const newRow = {};
+            headers.forEach(h => { newRow[h] = ''; });
+            state.rows.push(newRow);
+            renderEditor();
+        }
+
+        function addColumn() {
+            const name = prompt('新しい列の名前を入力してください（例：職業）');
+            if (!name || !name.trim()) return;
+            const newKey = name.trim();
+            if (state.headers.includes(newKey)) {
+                alert('同じ名前の列が既に存在します。');
+                return;
+            }
+            state.headers.push(newKey);
+            state.rows.forEach(row => { row[newKey] = ''; });
+            renderEditor();
+        }
+
+        function clearData() {
+            if (!confirm('すべての行データを削除しますか？（列は残ります）')) return;
+            state.rows = [];
+            renderEditor();
+        }
+
+        function updateStatus() {
+            dataStatus.textContent = '行数: ' + state.rows.length + ' ｜ 列数: ' + state.headers.length;
+        }
+
+        // ============================================================
+        //  エディタからデータ取得（ヘッダー＆行）
+        // ============================================================
+        function getDataFromEditor() {
+            // ヘッダーは state.headers を使う（既に同期済み）
+            // rowsも state.rows を使う（既に同期済み）
+            return {
+                headers: state.headers,
+                rows: state.rows,
+            };
+        }
+
+        // ============================================================
+        //  項目追加（タグ）
         // ============================================================
         addAxisBtn.addEventListener('click', () => {
             const val = prompt('集計軸の名前を入力してください（例：性別）');
@@ -459,150 +713,16 @@
             }
         });
 
-        // ============================================================
-        //  実行ボタン制御
-        // ============================================================
-        function updateExecButton() {
-            const hasData = state.csvData.length > 0;
-            const allExist = state.axes.every(a => state.headers.includes(a)) &&
-                state.targets.every(t => state.headers.includes(t));
-            execBtn.disabled = !(hasData && state.axes.length > 0 && state.targets.length > 0 && allExist);
-        }
-
-        // ============================================================
-        //  CSV読み込み
-        // ============================================================
-        dropzone.addEventListener('click', () => fileInput.click());
-
-        dropzone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropzone.classList.add('dragover');
-        });
-        dropzone.addEventListener('dragleave', () => {
-            dropzone.classList.remove('dragover');
-        });
-        dropzone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropzone.classList.remove('dragover');
-            if (e.dataTransfer.files.length) {
-                handleFile(e.dataTransfer.files[0]);
-            }
-        });
-
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length) {
-                handleFile(e.target.files[0]);
-            }
-        });
-
-        function handleFile(file) {
-            if (!file.name.toLowerCase().endsWith('.csv')) {
-                alert('CSVファイルを選択してください。');
-                return;
-            }
-            fileName.textContent = file.name;
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                const text = ev.target.result;
-                parseCSV(text);
-            };
-            reader.readAsText(file, 'UTF-8');
-        }
-
-        // ============================================================
-        //  CSVパース
-        // ============================================================
-        function parseCSV(text) {
-            try {
-                const lines = text.split('\n').filter(line => line.trim() !== '');
-                if (lines.length < 2) {
-                    alert('CSVが空か、ヘッダー行しかありません。');
-                    return;
-                }
-                const headers = parseCSVLine(lines[0]);
-                state.headers = headers;
-
-                const data = [];
-                for (let i = 1; i < lines.length; i++) {
-                    const vals = parseCSVLine(lines[i]);
-                    if (vals.length < headers.length) continue;
-                    const obj = {};
-                    headers.forEach((h, idx) => { obj[h] = vals[idx] || ''; });
-                    data.push(obj);
-                }
-                if (data.length === 0) {
-                    alert('データ行が読み取れませんでした。');
-                    return;
-                }
-                state.csvData = data;
-                showPreview(headers, data);
-                updateExecButton();
-                statusMsg.textContent = '完了：' + data.length + '行のデータを読み込みました。';
-                statusMsg.className = 'status-msg ok';
-                state.zipBlob = null;
-                downloadBtn.disabled = true;
-                progressFill.style.width = '0%';
-                progressText.textContent = '待機中...';
-            } catch (e) {
-                alert('CSVのパースに失敗しました: ' + e.message);
-            }
-        }
-
-        function parseCSVLine(line) {
-            const result = [];
-            let current = '';
-            let inQuotes = false;
-            for (let i = 0; i < line.length; i++) {
-                const ch = line[i];
-                if (inQuotes) {
-                    if (ch === '"') {
-                        if (i + 1 < line.length && line[i + 1] === '"') {
-                            current += '"';
-                            i++;
-                        } else {
-                            inQuotes = false;
-                        }
-                    } else {
-                        current += ch;
-                    }
-                } else {
-                    if (ch === '"') {
-                        inQuotes = true;
-                    } else if (ch === ',') {
-                        result.push(current.trim());
-                        current = '';
-                    } else {
-                        current += ch;
-                    }
-                }
-            }
-            result.push(current.trim());
-            return result;
-        }
-
-        // ============================================================
-        //  プレビュー
-        // ============================================================
-        function showPreview(headers, data) {
-            previewArea.style.display = 'block';
-            const rows = data.slice(0, 5);
-            let html = '<table><thead><tr>';
-            headers.forEach(h => { html += '<th>' + h + '</th>'; });
-            html += '</tr></thead><tbody>';
-            rows.forEach(row => {
-                html += '<tr>';
-                headers.forEach(h => { html += '<td>' + (row[h] || '') + '</td>'; });
-                html += '</tr>';
-            });
-            html += '</tbody></table>';
-            previewTableWrap.innerHTML = html;
-            rowCount.textContent = '全 ' + data.length + ' 行（表示は先頭5行）';
-        }
+        addRowBtn.addEventListener('click', addRow);
+        addColBtn.addEventListener('click', addColumn);
+        clearDataBtn.addEventListener('click', clearData);
 
         // ============================================================
         //  組み合わせ生成
         // ============================================================
         function generateAllCombinations(data, axes, target) {
+            if (data.length === 0) return [];
+
             const axisValues = axes.map(axis => {
                 const vals = [...new Set(data.map(row => row[axis] || '不明'))];
                 return vals.sort();
@@ -691,17 +811,25 @@
         //  メイン実行
         // ============================================================
         execBtn.addEventListener('click', async () => {
-            if (state.csvData.length === 0) {
-                alert('CSVを読み込んでください。');
+            const data = state.rows;
+            if (data.length === 0) {
+                alert('データがありません。行を追加してデータを入力してください。');
                 return;
             }
 
-            const allExist = state.axes.every(a => state.headers.includes(a)) &&
-                state.targets.every(t => state.headers.includes(t));
-            if (!allExist) {
-                alert('設定した項目がCSVのヘッダーに存在しません。');
+            const axes = state.axes;
+            const targets = state.targets;
+            const headers = state.headers;
+
+            // 存在チェック
+            const allAxesExist = axes.every(a => headers.includes(a));
+            const allTargetsExist = targets.every(t => headers.includes(t));
+            if (!allAxesExist || !allTargetsExist) {
+                alert('設定した項目がエディタの列見出しに存在しません。\n集計軸と集計対象の名前を確認してください。');
                 return;
             }
+
+            const target = targets[0];
 
             execBtn.disabled = true;
             execBtn.textContent = '処理中...';
@@ -711,9 +839,6 @@
             try {
                 const zip = new JSZip();
                 const folder = zip.folder('円グラフ');
-                const data = state.csvData;
-                const axes = state.axes;
-                const target = state.targets[0];
                 const allCombos = generateAllCombinations(data, axes, target);
 
                 let completed = 0;
@@ -821,28 +946,28 @@
         // ============================================================
         resetBtn.addEventListener('click', () => {
             if (!confirm('すべてのデータと設定をリセットしますか？')) return;
-            state.csvData = [];
-            state.headers = [];
-            state.zipBlob = null;
+            state.headers = [...defaultHeaders];
+            state.rows = JSON.parse(JSON.stringify(defaultRows));
             state.axes = ['性別', '年代'];
             state.targets = ['改善分野'];
+            state.zipBlob = null;
             renderTags();
-            previewArea.style.display = 'none';
-            fileName.textContent = 'まだファイルが選択されていません';
+            renderEditor();
             downloadBtn.disabled = true;
             progressFill.style.width = '0%';
             progressText.textContent = '待機中...';
-            statusMsg.textContent = 'CSVを読み込み、項目を設定してから「集計＆ZIP生成」を押してください。';
+            statusMsg.textContent = 'データを入力し、項目を設定してから「集計＆ZIP生成」を押してください。';
             statusMsg.className = 'status-msg';
-            fileInput.value = '';
-            execBtn.disabled = true;
         });
 
         // ============================================================
         //  初期化
         // ============================================================
+        state.headers = [...defaultHeaders];
+        state.rows = JSON.parse(JSON.stringify(defaultRows));
         renderTags();
-        updateExecButton();
+        renderEditor();
+        statusMsg.textContent = 'サンプルデータが入力されています。そのまま実行するか、編集してください。';
     </script>
 
 </body>
