@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>アンケート円グラフ一括ZIP出力ツール</title>
+    <title>ケース別集計 円グラフZIP出力</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js">
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js">
@@ -56,7 +56,6 @@
             border-top: 2px dashed #e2e8f0;
             margin: 32px 0;
         }
-
         .section {
             background: #fafbfc;
             border-radius: 16px;
@@ -81,40 +80,26 @@
             border-radius: 40px;
             line-height: 24px;
         }
+        .section-title .badge.green {
+            background: #10b981;
+        }
         .row {
             display: flex;
             flex-wrap: wrap;
             align-items: center;
             gap: 12px 16px;
         }
-        .tag-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
-        }
-        .tag {
-            background: #eef2ff;
-            color: #1e293b;
-            padding: 6px 14px 6px 18px;
-            border-radius: 40px;
-            font-size: 14px;
+        .row label {
             font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            border: 1px solid #d9e2ef;
+            min-width: 100px;
         }
-        .tag .del {
-            cursor: pointer;
-            font-weight: 700;
-            color: #ef4444;
-            font-size: 16px;
-            line-height: 1;
-            transition: 0.15s;
-        }
-        .tag .del:hover {
-            transform: scale(1.2);
+        .row select {
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            font-size: 14px;
+            background: #fff;
+            min-width: 160px;
         }
         .btn {
             background: #ffffff;
@@ -152,15 +137,6 @@
             background: #059669;
             border-color: #059669;
         }
-        .btn-danger {
-            background: #ef4444;
-            border-color: #ef4444;
-            color: #fff;
-        }
-        .btn-danger:hover {
-            background: #dc2626;
-            border-color: #dc2626;
-        }
         .btn:disabled {
             opacity: 0.4;
             pointer-events: none;
@@ -178,8 +154,6 @@
             align-items: center;
             gap: 12px;
         }
-
-        /* ---- エディタ ---- */
         .editor-wrap {
             overflow-x: auto;
             border-radius: 12px;
@@ -202,6 +176,30 @@
             position: sticky;
             top: 0;
             z-index: 2;
+        }
+        .editor-wrap th .col-actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            margin-top: 4px;
+        }
+        .editor-wrap th .col-actions .btn-sm {
+            padding: 2px 10px;
+            font-size: 11px;
+            border-radius: 20px;
+            border: 1px solid #cbd5e1;
+            background: #fff;
+            cursor: pointer;
+        }
+        .editor-wrap th .col-actions .btn-sm:hover {
+            background: #f1f5f9;
+        }
+        .editor-wrap th .col-actions .btn-sm.del-col {
+            color: #ef4444;
+            border-color: #fca5a5;
+        }
+        .editor-wrap th .col-actions .btn-sm.del-col:hover {
+            background: #fef2f2;
         }
         .editor-wrap td {
             padding: 4px 6px;
@@ -228,6 +226,10 @@
         }
         .editor-wrap td input[type="text"] {
             min-width: 70px;
+        }
+        .editor-wrap td input[type="number"] {
+            min-width: 70px;
+            max-width: 100px;
         }
         .editor-wrap .row-del {
             cursor: pointer;
@@ -256,45 +258,11 @@
             margin-top: 12px;
             align-items: center;
         }
-        .editor-toolbar .btn {
-            font-size: 13px;
-            padding: 6px 16px;
-        }
         .data-status {
             font-size: 13px;
             color: #475569;
             margin-left: auto;
         }
-
-        /* ---- プレビュー ---- */
-        .preview-wrap {
-            overflow-x: auto;
-            margin-top: 14px;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            background: #fff;
-        }
-        .preview-wrap table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-            min-width: 400px;
-        }
-        .preview-wrap th {
-            background: #f1f5f9;
-            text-align: left;
-            padding: 10px 14px;
-            font-weight: 600;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        .preview-wrap td {
-            padding: 8px 14px;
-            border-bottom: 1px solid #f1f5f9;
-        }
-        .preview-wrap tr:last-child td {
-            border-bottom: none;
-        }
-
         .progress-wrap {
             margin: 10px 0 6px;
         }
@@ -317,7 +285,6 @@
             color: #475569;
             margin-top: 6px;
         }
-
         .status-msg {
             padding: 12px 18px;
             border-radius: 12px;
@@ -334,11 +301,24 @@
             background: #fef2f2;
             color: #991b1b;
         }
-
         .hidden {
             display: none !important;
         }
-
+        .mt-8 {
+            margin-top: 8px;
+        }
+        .gap-8 {
+            gap: 8px;
+        }
+        .weight-info {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 14px;
+            color: #92400e;
+            margin-top: 10px;
+        }
         @media (max-width: 640px) {
             .container {
                 padding: 20px 16px;
@@ -367,6 +347,9 @@
             .data-status {
                 margin-left: 0;
             }
+            .editor-wrap th .col-actions {
+                flex-wrap: wrap;
+            }
         }
     </style>
 </head>
@@ -374,77 +357,80 @@
 
     <div class="container" id="app">
         <h1>
-            アンケート円グラフ一括ZIP出力
-            <small>エディタ内蔵</small>
+            ケース別集計 円グラフZIP出力
+            <small>人数指定タイプ</small>
         </h1>
         <div class="sub">
-            項目を設定し、表に直接データを入力してください。CSVファイルは不要です。
+            各ケース（例：男性×20代×道路整備）ごとに「人数」を入力します。
+            性別・年代がなくてもOK。項目名は自由に決められます。
         </div>
 
-        <!-- ===== STEP1 項目設定 ===== -->
+        <!-- ===== STEP1 集計設定 ===== -->
         <div class="section">
             <div class="section-title">
-                <span>ステップ1：項目設定</span>
-                <span class="badge">集計軸</span>
+                <span>ステップ1：集計設定</span>
+                <span class="badge">列名から選択</span>
             </div>
-            <div class="row">
-                <div style="font-weight:500; min-width:100px;">集計軸（クロス集計する項目）</div>
-                <div class="tag-group" id="axisGroup"></div>
-                <button class="btn" id="addAxisBtn">+ 軸を追加</button>
-            </div>
-            <div style="margin-top:18px; border-top:1px dashed #e2e8f0; padding-top:18px;">
-                <div class="row">
-                    <div style="font-weight:500; min-width:100px;">集計対象（円グラフにしたい項目）</div>
-                    <div class="tag-group" id="targetGroup"></div>
-                    <button class="btn" id="addTargetBtn">+ 対象を追加</button>
+            <div class="row" style="gap:20px;">
+                <div>
+                    <label>集計軸（クロス集計する項目）</label>
+                    <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:6px;" id="axisSelectors">
+                        <!-- JSで動的生成 -->
+                    </div>
+                    <button class="btn" id="addAxisSelectorBtn" style="margin-top:6px;">+ 軸を追加</button>
+                </div>
+                <div>
+                    <label>集計対象（円グラフにしたい項目）</label>
+                    <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:6px;" id="targetSelectors">
+                        <!-- JSで動的生成 -->
+                    </div>
+                    <button class="btn" id="addTargetSelectorBtn" style="margin-top:6px;">+ 対象を追加</button>
+                </div>
+                <div>
+                    <label>人数カラム</label>
+                    <div style="margin-top:6px;">
+                        <select id="weightColumnSelect" style="padding:8px 14px; border-radius:8px; border:1px solid #cbd5e1; font-size:14px; background:#fff; min-width:160px;">
+                        </select>
+                    </div>
+                    <div style="font-size:12px; color:#94a3b8; margin-top:4px;">集計時にこの列の数値を使います</div>
                 </div>
             </div>
-            <div style="margin-top:14px; font-size:14px; color:#94a3b8;">
-                例：集計軸＝性別,年代 ｜ 集計対象＝改善分野
+            <div class="weight-info">
+                <strong>重要：</strong>「人数カラム」に指定した列の数値が、円グラフの集計に使われます。
+                ケースごとの人数を入力してください。
             </div>
         </div>
 
-        <!-- ===== STEP2 データ入力（エディタ） ===== -->
+        <!-- ===== STEP2 データ入力 ===== -->
         <div class="section">
             <div class="section-title">
                 <span>ステップ2：データ入力</span>
-                <span class="badge">表に直接入力</span>
+                <span class="badge">ケースごとに人数を入力</span>
             </div>
 
             <div class="flex-between">
                 <div style="display:flex; gap:10px; flex-wrap:wrap;">
                     <button class="btn" id="addRowBtn">+ 行を追加</button>
                     <button class="btn" id="addColBtn">+ 列（項目）を追加</button>
-                    <button class="btn" id="clearDataBtn">全削除</button>
+                    <button class="btn" id="clearDataBtn">全行削除</button>
                 </div>
-                <div class="data-status" id="dataStatus">行数: 0</div>
+                <div class="data-status" id="dataStatus">行数: 0 ｜ 列数: 0</div>
             </div>
 
             <div class="editor-wrap" id="editorWrap">
                 <table id="editorTable">
-                    <thead id="editorHead">
-                        <tr>
-                            <th style="width:32px; min-width:32px;">#</th>
-                            <th style="min-width:80px;">列1</th>
-                            <th style="width:32px; min-width:32px;"></th>
-                        </tr>
-                    </thead>
-                    <tbody id="editorBody">
-                        <tr>
-                            <td class="row-num">1</td>
-                            <td><input type="text" value="サンプルデータ" placeholder="値を入力"></td>
-                            <td class="row-del" data-index="0">✕</td>
-                        </tr>
-                    </tbody>
+                    <thead id="editorHead"></thead>
+                    <tbody id="editorBody"></tbody>
                 </table>
             </div>
 
             <div style="margin-top:12px; font-size:13px; color:#94a3b8;">
-                * 列見出し（ヘッダー）をクリックすると編集できます。
+                * 列見出しをダブルクリックで編集。列の ✕ ボタンで削除。<br>
+                * 「人数」列は数値（半角数字）を入力してください。
             </div>
         </div>
 
-        <!-- ===== STEP3 実行＆ダウンロード ===== -->
+        <!-- ===== STEP3 実行 ===== -->
         <div class="section">
             <div class="section-title">
                 <span>ステップ3：全パターン集計＆ZIP出力</span>
@@ -461,7 +447,7 @@
                 <div class="progress-text" id="progressText">待機中...</div>
             </div>
 
-            <div class="status-msg" id="statusMsg">データを入力し、項目を設定してから「集計＆ZIP生成」を押してください。</div>
+            <div class="status-msg" id="statusMsg">データを入力し、集計設定をしてから実行してください。</div>
         </div>
 
         <hr>
@@ -475,20 +461,29 @@
         //  状態
         // ============================================================
         const state = {
-            axes: ['性別', '年代'],
-            targets: ['改善分野'],
-            headers: [], // エディタの列見出し
-            rows: [], // 各行のデータ（オブジェクト配列）
+            headers: ['性別', '年代', '改善分野', '人数'],
+            rows: [
+                { '性別': '男性', '年代': '20代', '改善分野': '道路整備', '人数': '45' },
+                { '性別': '男性', '年代': '20代', '改善分野': '子育て支援', '人数': '30' },
+                { '性別': '男性', '年代': '30代', '改善分野': '道路整備', '人数': '25' },
+                { '性別': '女性', '年代': '20代', '改善分野': '道路整備', '人数': '40' },
+                { '性別': '女性', '年代': '30代', '改善分野': '子育て支援', '人数': '35' },
+                { '性別': '女性', '年代': '20代', '改善分野': '防災対策', '人数': '20' },
+            ],
+            selectedAxes: ['性別', '年代'],
+            selectedTargets: ['改善分野'],
+            weightColumn: '人数',
             zipBlob: null,
         };
 
         // ============================================================
         //  DOM参照
         // ============================================================
-        const axisGroup = document.getElementById('axisGroup');
-        const targetGroup = document.getElementById('targetGroup');
-        const addAxisBtn = document.getElementById('addAxisBtn');
-        const addTargetBtn = document.getElementById('addTargetBtn');
+        const axisSelectors = document.getElementById('axisSelectors');
+        const targetSelectors = document.getElementById('targetSelectors');
+        const addAxisSelectorBtn = document.getElementById('addAxisSelectorBtn');
+        const addTargetSelectorBtn = document.getElementById('addTargetSelectorBtn');
+        const weightColumnSelect = document.getElementById('weightColumnSelect');
         const editorHead = document.getElementById('editorHead');
         const editorBody = document.getElementById('editorBody');
         const addRowBtn = document.getElementById('addRowBtn');
@@ -510,44 +505,145 @@
         ];
 
         // ============================================================
-        //  初期データ
+        //  人数カラム選択肢更新
         // ============================================================
-        const defaultHeaders = ['性別', '年代', '改善分野'];
-        const defaultRows = [
-            { '性別': '男性', '年代': '20代', '改善分野': '道路整備' },
-            { '性別': '女性', '年代': '30代', '改善分野': '子育て支援' },
-            { '性別': '男性', '年代': '20代', '改善分野': '防災対策' },
-            { '性別': '女性', '年代': '40代', '改善分野': '道路整備' },
-            { '性別': '男性', '年代': '30代', '改善分野': '観光振興' },
-        ];
-
-        // ============================================================
-        //  レンダリング：タグ（集計軸・対象）
-        // ============================================================
-        function renderTags() {
-            axisGroup.innerHTML = state.axes.map((a, i) =>
-                '<span class="tag">' + a + ' <span class="del" data-type="axis" data-index="' + i + '">✕</span></span>'
+        function updateWeightColumnOptions() {
+            const headers = state.headers;
+            const current = weightColumnSelect.value;
+            weightColumnSelect.innerHTML = headers.map(h =>
+                '<option value="' + h + '">' + h + '</option>'
             ).join('');
+            if (headers.includes(current)) {
+                weightColumnSelect.value = current;
+            } else if (headers.length > 0) {
+                weightColumnSelect.value = headers[0];
+            }
+            state.weightColumn = weightColumnSelect.value;
+        }
 
-            targetGroup.innerHTML = state.targets.map((t, i) =>
-                '<span class="tag">' + t + ' <span class="del" data-type="target" data-index="' + i + '">✕</span></span>'
-            ).join('');
+        // ============================================================
+        //  プルダウン選択肢更新
+        // ============================================================
+        function updateSelectorOptions() {
+            const headers = state.headers;
+            const weightCol = state.weightColumn;
+            // 軸・対象用の候補（人数カラムを除外）
+            const candidates = headers.filter(h => h !== weightCol);
 
-            document.querySelectorAll('.tag .del').forEach(el => {
+            document.querySelectorAll('.axis-selector').forEach(sel => {
+                const current = sel.value;
+                sel.innerHTML = candidates.map(h => '<option value="' + h + '">' + h + '</option>').join('');
+                if (candidates.includes(current)) sel.value = current;
+                else if (candidates.length > 0) sel.value = candidates[0];
+            });
+            document.querySelectorAll('.target-selector').forEach(sel => {
+                const current = sel.value;
+                sel.innerHTML = candidates.map(h => '<option value="' + h + '">' + h + '</option>').join('');
+                if (candidates.includes(current)) sel.value = current;
+                else if (candidates.length > 0) sel.value = candidates[0];
+            });
+            syncSelectorsToState();
+            updateWeightColumnOptions();
+        }
+
+        function syncSelectorsToState() {
+            const axisSels = document.querySelectorAll('.axis-selector');
+            state.selectedAxes = Array.from(axisSels).map(s => s.value);
+            const targetSels = document.querySelectorAll('.target-selector');
+            state.selectedTargets = Array.from(targetSels).map(s => s.value);
+        }
+
+        // ============================================================
+        //  セレクタレンダリング
+        // ============================================================
+        function renderSelectors() {
+            const candidates = state.headers.filter(h => h !== state.weightColumn);
+
+            let axisHtml = '';
+            state.selectedAxes.forEach((val, idx) => {
+                axisHtml +=
+                    '<div style="display:flex; align-items:center; gap:6px;">' +
+                    '<select class="axis-selector" data-idx="' + idx + '">' +
+                    candidates.map(h => '<option value="' + h + '">' + h + '</option>').join('') +
+                    '</select>' +
+                    '<span class="del" style="cursor:pointer; color:#ef4444; font-weight:700;" data-type="axis" data-idx="' +
+                    idx + '">✕</span>' +
+                    '</div>';
+            });
+            axisSelectors.innerHTML = axisHtml;
+
+            let targetHtml = '';
+            state.selectedTargets.forEach((val, idx) => {
+                targetHtml +=
+                    '<div style="display:flex; align-items:center; gap:6px;">' +
+                    '<select class="target-selector" data-idx="' + idx + '">' +
+                    candidates.map(h => '<option value="' + h + '">' + h + '</option>').join('') +
+                    '</select>' +
+                    '<span class="del" style="cursor:pointer; color:#ef4444; font-weight:700;" data-type="target" data-idx="' +
+                    idx + '">✕</span>' +
+                    '</div>';
+            });
+            targetSelectors.innerHTML = targetHtml;
+
+            document.querySelectorAll('.axis-selector').forEach((sel, idx) => {
+                if (state.selectedAxes[idx] && candidates.includes(state.selectedAxes[idx])) {
+                    sel.value = state.selectedAxes[idx];
+                } else if (candidates.length > 0) {
+                    sel.value = candidates[0];
+                }
+                sel.addEventListener('change', syncSelectorsToState);
+            });
+            document.querySelectorAll('.target-selector').forEach((sel, idx) => {
+                if (state.selectedTargets[idx] && candidates.includes(state.selectedTargets[idx])) {
+                    sel.value = state.selectedTargets[idx];
+                } else if (candidates.length > 0) {
+                    sel.value = candidates[0];
+                }
+                sel.addEventListener('change', syncSelectorsToState);
+            });
+
+            document.querySelectorAll('.del[data-type="axis"]').forEach(el => {
                 el.addEventListener('click', function() {
-                    const type = this.dataset.type;
-                    const idx = parseInt(this.dataset.index);
-                    if (type === 'axis') {
-                        if (state.axes.length <= 1) { alert('集計軸は少なくとも1つ必要です。'); return; }
-                        state.axes.splice(idx, 1);
-                    } else {
-                        if (state.targets.length <= 1) { alert('集計対象は少なくとも1つ必要です。'); return; }
-                        state.targets.splice(idx, 1);
-                    }
-                    renderTags();
+                    const idx = parseInt(this.dataset.idx);
+                    if (state.selectedAxes.length <= 1) { alert('軸は少なくとも1つ必要です。'); return; }
+                    state.selectedAxes.splice(idx, 1);
+                    renderSelectors();
                 });
             });
+            document.querySelectorAll('.del[data-type="target"]').forEach(el => {
+                el.addEventListener('click', function() {
+                    const idx = parseInt(this.dataset.idx);
+                    if (state.selectedTargets.length <= 1) { alert('対象は少なくとも1つ必要です。'); return; }
+                    state.selectedTargets.splice(idx, 1);
+                    renderSelectors();
+                });
+            });
+
+            syncSelectorsToState();
+            updateWeightColumnOptions();
         }
+
+        // ============================================================
+        //  セレクタ追加
+        // ============================================================
+        addAxisSelectorBtn.addEventListener('click', () => {
+            const candidates = state.headers.filter(h => h !== state.weightColumn);
+            if (candidates.length === 0) { alert('列がありません。先に列を追加してください。'); return; }
+            state.selectedAxes.push(candidates[0]);
+            renderSelectors();
+        });
+
+        addTargetSelectorBtn.addEventListener('click', () => {
+            const candidates = state.headers.filter(h => h !== state.weightColumn);
+            if (candidates.length === 0) { alert('列がありません。先に列を追加してください。'); return; }
+            state.selectedTargets.push(candidates[0]);
+            renderSelectors();
+        });
+
+        weightColumnSelect.addEventListener('change', () => {
+            state.weightColumn = weightColumnSelect.value;
+            renderSelectors();
+        });
 
         // ============================================================
         //  エディタ描画
@@ -556,38 +652,69 @@
             const headers = state.headers;
             const rows = state.rows;
 
-            // ヘッダー行
             let theadHtml = '<tr><th style="width:32px; min-width:32px;">#</th>';
             headers.forEach((h, idx) => {
-                theadHtml += '<th style="min-width:80px;" data-col="' + idx + '">' +
-                    '<input type="text" value="' + h + '" style="width:100%; border:none; background:transparent; font-weight:600; font-size:14px; text-align:left; padding:4px 0;" data-header="' +
-                    idx + '">' +
+                const isWeight = (h === state.weightColumn);
+                theadHtml += '<th style="min-width:80px;">' +
+                    '<div style="display:flex; align-items:center; gap:6px; justify-content:space-between;">' +
+                    '<span class="col-label" data-col="' + idx + '" style="cursor:text; font-weight:600;">' + h +
+                    (isWeight ? ' 👤' : '') +
+                    '</span>' +
+                    '<span class="del-col" style="cursor:pointer; color:#ef4444; font-size:14px; font-weight:700;" data-col="' +
+                    idx + '">✕</span>' +
+                    '</div>' +
+                    (isWeight ? '<div style="font-size:10px; color:#10b981; font-weight:400;">人数カラム</div>' : '') +
                     '</th>';
             });
             theadHtml += '<th style="width:32px; min-width:32px;"></th></tr>';
             editorHead.innerHTML = theadHtml;
 
-            // ヘッダー入力変更イベント
-            editorHead.querySelectorAll('input[data-header]').forEach(inp => {
-                inp.addEventListener('change', function() {
-                    const idx = parseInt(this.dataset.header);
-                    const val = this.value.trim();
-                    if (val) {
-                        // ヘッダー名変更 → データのキーも更新
-                        const oldKey = state.headers[idx];
-                        const newKey = val;
-                        if (oldKey !== newKey) {
-                            state.rows.forEach(row => {
-                                if (row[oldKey] !== undefined) {
-                                    row[newKey] = row[oldKey];
-                                    delete row[oldKey];
-                                }
-                            });
-                            state.headers[idx] = newKey;
+            // 列名編集
+            editorHead.querySelectorAll('.col-label').forEach(el => {
+                el.addEventListener('dblclick', function() {
+                    const idx = parseInt(this.dataset.col);
+                    const current = state.headers[idx];
+                    const newName = prompt('列名を入力してください:', current);
+                    if (newName && newName.trim() && newName.trim() !== current) {
+                        const newKey = newName.trim();
+                        if (state.headers.includes(newKey) && state.headers.indexOf(newKey) !== idx) {
+                            alert('同じ名前の列が既に存在します。');
+                            return;
                         }
-                    } else {
-                        this.value = state.headers[idx];
+                        state.rows.forEach(row => {
+                            if (row[current] !== undefined) {
+                                row[newKey] = row[current];
+                                delete row[current];
+                            }
+                        });
+                        state.headers[idx] = newKey;
+                        // 人数カラムが変更されたら更新
+                        if (state.weightColumn === current) {
+                            state.weightColumn = newKey;
+                        }
+                        renderEditor();
+                        renderSelectors();
+                        updateStatus();
                     }
+                });
+            });
+
+            // 列削除
+            editorHead.querySelectorAll('.del-col').forEach(el => {
+                el.addEventListener('click', function() {
+                    const idx = parseInt(this.dataset.col);
+                    if (state.headers.length <= 1) { alert('列は少なくとも1つ必要です。'); return; }
+                    const colName = state.headers[idx];
+                    if (!confirm('列 "' + colName + '" を削除しますか？（データも削除されます）')) return;
+                    state.headers.splice(idx, 1);
+                    state.rows.forEach(row => { delete row[colName]; });
+                    if (state.weightColumn === colName) {
+                        state.weightColumn = state.headers[0] || '';
+                    }
+                    state.selectedAxes = state.selectedAxes.filter(a => a !== colName);
+                    state.selectedTargets = state.selectedTargets.filter(t => t !== colName);
+                    renderEditor();
+                    renderSelectors();
                     updateStatus();
                 });
             });
@@ -604,8 +731,12 @@
                     tbodyHtml += '<td class="row-num">' + (ri + 1) + '</td>';
                     headers.forEach((h) => {
                         const val = row[h] || '';
-                        tbodyHtml += '<td><input type="text" value="' + val.replace(/"/g, '&quot;') +
-                            '" data-row="' + ri + '" data-col="' + h + '"></td>';
+                        const isWeight = (h === state.weightColumn);
+                        const inputType = isWeight ? 'number' : 'text';
+                        const step = isWeight ? ' step="1" min="0"' : '';
+                        tbodyHtml += '<td><input type="' + inputType + '" value="' + val.replace(/"/g,
+                                '&quot;') + '" data-row="' + ri + '" data-col="' + h + '"' + step +
+                            '></td>';
                     });
                     tbodyHtml += '<td class="row-del" data-index="' + ri + '">✕</td>';
                     tbodyHtml += '</tr>';
@@ -613,7 +744,7 @@
             }
             editorBody.innerHTML = tbodyHtml;
 
-            // 行削除イベント
+            // 行削除
             editorBody.querySelectorAll('.row-del').forEach(el => {
                 el.addEventListener('click', function() {
                     const idx = parseInt(this.dataset.index);
@@ -623,7 +754,7 @@
                 });
             });
 
-            // セル入力変更イベント
+            // セル入力
             editorBody.querySelectorAll('input[data-row]').forEach(inp => {
                 inp.addEventListener('change', function() {
                     const ri = parseInt(this.dataset.row);
@@ -648,19 +779,18 @@
         //  行・列操作
         // ============================================================
         function addRow() {
-            const headers = state.headers;
-            if (headers.length === 0) {
+            if (state.headers.length === 0) {
                 alert('列がありません。先に列を追加してください。');
                 return;
             }
             const newRow = {};
-            headers.forEach(h => { newRow[h] = ''; });
+            state.headers.forEach(h => { newRow[h] = ''; });
             state.rows.push(newRow);
             renderEditor();
         }
 
         function addColumn() {
-            const name = prompt('新しい列の名前を入力してください（例：職業）');
+            const name = prompt('新しい列の名前を入力してください:');
             if (!name || !name.trim()) return;
             const newKey = name.trim();
             if (state.headers.includes(newKey)) {
@@ -670,6 +800,7 @@
             state.headers.push(newKey);
             state.rows.forEach(row => { row[newKey] = ''; });
             renderEditor();
+            renderSelectors();
         }
 
         function clearData() {
@@ -683,48 +814,27 @@
         }
 
         // ============================================================
-        //  エディタからデータ取得（ヘッダー＆行）
+        //  集計（人数カラムを重みとして使用）
         // ============================================================
-        function getDataFromEditor() {
-            // ヘッダーは state.headers を使う（既に同期済み）
-            // rowsも state.rows を使う（既に同期済み）
-            return {
-                headers: state.headers,
-                rows: state.rows,
-            };
-        }
+        function generateAllCombinations(data, axes, target, weightCol) {
+            if (data.length === 0 || axes.length === 0) return [];
 
-        // ============================================================
-        //  項目追加（タグ）
-        // ============================================================
-        addAxisBtn.addEventListener('click', () => {
-            const val = prompt('集計軸の名前を入力してください（例：性別）');
-            if (val && val.trim()) {
-                state.axes.push(val.trim());
-                renderTags();
-            }
-        });
+            // データを展開（人数分だけ繰り返す）
+            const expanded = [];
+            data.forEach(row => {
+                const weight = parseInt(row[weightCol]) || 0;
+                if (weight <= 0) return;
+                for (let i = 0; i < weight; i++) {
+                    const copy = {};
+                    Object.keys(row).forEach(k => { copy[k] = row[k]; });
+                    expanded.push(copy);
+                }
+            });
 
-        addTargetBtn.addEventListener('click', () => {
-            const val = prompt('集計対象の名前を入力してください（例：改善分野）');
-            if (val && val.trim()) {
-                state.targets.push(val.trim());
-                renderTags();
-            }
-        });
-
-        addRowBtn.addEventListener('click', addRow);
-        addColBtn.addEventListener('click', addColumn);
-        clearDataBtn.addEventListener('click', clearData);
-
-        // ============================================================
-        //  組み合わせ生成
-        // ============================================================
-        function generateAllCombinations(data, axes, target) {
-            if (data.length === 0) return [];
+            if (expanded.length === 0) return [];
 
             const axisValues = axes.map(axis => {
-                const vals = [...new Set(data.map(row => row[axis] || '不明'))];
+                const vals = [...new Set(expanded.map(row => String(row[axis] || '不明')))];
                 return vals.sort();
             });
 
@@ -732,13 +842,13 @@
 
             results.push({
                 label: '全体',
-                filteredData: data,
+                filteredData: expanded,
             });
 
             axes.forEach((axis, idx) => {
                 const unique = axisValues[idx];
                 unique.forEach(val => {
-                    const filtered = data.filter(row => row[axis] === val);
+                    const filtered = expanded.filter(row => String(row[axis] || '不明') === val);
                     results.push({
                         label: axis + ': ' + val,
                         filteredData: filtered,
@@ -751,13 +861,13 @@
                     const combos = getCombinations(axes, r);
                     for (const combo of combos) {
                         const valueCombos = cartesianProduct(combo.map(a => {
-                            const vals = [...new Set(data.map(row => row[a] || '不明'))];
+                            const vals = [...new Set(expanded.map(row => String(row[a] || '不明')))];
                             return vals.sort();
                         }));
                         for (const vals of valueCombos) {
                             const label = combo.map((a, i) => a + ':' + vals[i]).join(' / ');
-                            const filtered = data.filter(row => {
-                                return combo.every((a, i) => row[a] === vals[i]);
+                            const filtered = expanded.filter(row => {
+                                return combo.every((a, i) => String(row[a] || '不明') === vals[i]);
                             });
                             if (filtered.length === 0) continue;
                             results.push({
@@ -801,7 +911,7 @@
         function countCategories(data, target) {
             const counts = {};
             data.forEach(row => {
-                const val = row[target] || '不明';
+                const val = String(row[target] || '不明');
                 counts[val] = (counts[val] || 0) + 1;
             });
             return counts;
@@ -817,19 +927,43 @@
                 return;
             }
 
-            const axes = state.axes;
-            const targets = state.targets;
+            const axes = state.selectedAxes;
+            const targets = state.selectedTargets;
             const headers = state.headers;
+            const weightCol = state.weightColumn;
 
-            // 存在チェック
+            if (axes.length === 0) {
+                alert('集計軸を少なくとも1つ選択してください。');
+                return;
+            }
+            if (targets.length === 0) {
+                alert('集計対象を少なくとも1つ選択してください。');
+                return;
+            }
+            if (!weightCol || !headers.includes(weightCol)) {
+                alert('人数カラムが正しく設定されていません。');
+                return;
+            }
+
             const allAxesExist = axes.every(a => headers.includes(a));
             const allTargetsExist = targets.every(t => headers.includes(t));
             if (!allAxesExist || !allTargetsExist) {
-                alert('設定した項目がエディタの列見出しに存在しません。\n集計軸と集計対象の名前を確認してください。');
+                alert('選択した項目がエディタの列見出しに存在しません。');
                 return;
             }
 
             const target = targets[0];
+
+            // 人数カラムの数値チェック
+            let hasValidWeight = false;
+            data.forEach(row => {
+                const w = parseInt(row[weightCol]);
+                if (w > 0) hasValidWeight = true;
+            });
+            if (!hasValidWeight) {
+                alert('人数カラムに有効な数値（1以上の整数）がありません。');
+                return;
+            }
 
             execBtn.disabled = true;
             execBtn.textContent = '処理中...';
@@ -839,7 +973,7 @@
             try {
                 const zip = new JSZip();
                 const folder = zip.folder('円グラフ');
-                const allCombos = generateAllCombinations(data, axes, target);
+                const allCombos = generateAllCombinations(data, axes, target, weightCol);
 
                 let completed = 0;
                 const total = allCombos.length;
@@ -878,8 +1012,8 @@
                             plugins: {
                                 title: {
                                     display: true,
-                                    text: label,
-                                    font: { size: 22, weight: 'bold' },
+                                    text: label + ' （総数: ' + filteredData.length + '人）',
+                                    font: { size: 20, weight: 'bold' },
                                     padding: { bottom: 16 }
                                 },
                                 legend: {
@@ -891,7 +1025,7 @@
                                         label: function(context) {
                                             const total = context.dataset.data.reduce((a, b) => a + b, 0);
                                             const pct = total > 0 ? (context.parsed / total * 100).toFixed(1) : 0;
-                                            return context.label + ': ' + context.parsed + ' (' + pct + '%)';
+                                            return context.label + ': ' + context.parsed + '人 (' + pct + '%)';
                                         }
                                     }
                                 }
@@ -946,28 +1080,34 @@
         // ============================================================
         resetBtn.addEventListener('click', () => {
             if (!confirm('すべてのデータと設定をリセットしますか？')) return;
-            state.headers = [...defaultHeaders];
-            state.rows = JSON.parse(JSON.stringify(defaultRows));
-            state.axes = ['性別', '年代'];
-            state.targets = ['改善分野'];
+            state.headers = ['性別', '年代', '改善分野', '人数'];
+            state.rows = [
+                { '性別': '男性', '年代': '20代', '改善分野': '道路整備', '人数': '45' },
+                { '性別': '男性', '年代': '20代', '改善分野': '子育て支援', '人数': '30' },
+                { '性別': '男性', '年代': '30代', '改善分野': '道路整備', '人数': '25' },
+                { '性別': '女性', '年代': '20代', '改善分野': '道路整備', '人数': '40' },
+                { '性別': '女性', '年代': '30代', '改善分野': '子育て支援', '人数': '35' },
+                { '性別': '女性', '年代': '20代', '改善分野': '防災対策', '人数': '20' },
+            ];
+            state.selectedAxes = ['性別', '年代'];
+            state.selectedTargets = ['改善分野'];
+            state.weightColumn = '人数';
             state.zipBlob = null;
-            renderTags();
-            renderEditor();
             downloadBtn.disabled = true;
             progressFill.style.width = '0%';
             progressText.textContent = '待機中...';
-            statusMsg.textContent = 'データを入力し、項目を設定してから「集計＆ZIP生成」を押してください。';
+            statusMsg.textContent = 'リセットしました。データを編集してから実行してください。';
             statusMsg.className = 'status-msg';
+            renderSelectors();
+            renderEditor();
         });
 
         // ============================================================
         //  初期化
         // ============================================================
-        state.headers = [...defaultHeaders];
-        state.rows = JSON.parse(JSON.stringify(defaultRows));
-        renderTags();
+        renderSelectors();
         renderEditor();
-        statusMsg.textContent = 'サンプルデータが入力されています。そのまま実行するか、編集してください。';
+        statusMsg.textContent = 'サンプルデータが入っています。ケースごとに人数を入力してから実行してください。';
     </script>
 
 </body>
