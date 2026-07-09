@@ -498,7 +498,6 @@
                 { '性別': '女性', '年代': '30代', '改善分野': '子育て支援', '人数': '35' },
                 { '性別': '女性', '年代': '20代', '改善分野': '防災対策', '人数': '20' },
             ],
-            // 各列の選択肢リスト { 列名: [選択肢1, 選択肢2, ...] }
             choices: {
                 '性別': ['男性', '女性'],
                 '年代': ['20代', '30代', '40代', '50代以上'],
@@ -665,7 +664,6 @@
             const headers = state.headers;
             const rows = state.rows;
 
-            // ヘッダー
             let theadHtml = '<tr><th style="width:32px; min-width:32px;">#</th>';
             headers.forEach((h, idx) => {
                 const isWeight = (h === WEIGHT_KEY);
@@ -695,7 +693,7 @@
             theadHtml += '<th style="width:32px; min-width:32px;"></th></tr>';
             editorHead.innerHTML = theadHtml;
 
-            // イベント: 列名編集
+            // 列名編集
             editorHead.querySelectorAll('.col-label').forEach(el => {
                 el.addEventListener('dblclick', function() {
                     const idx = parseInt(this.dataset.col);
@@ -707,7 +705,6 @@
                         alert('同じ名前の列が既に存在します。');
                         return;
                     }
-                    // 選択肢のキーを更新
                     if (state.choices[current]) {
                         state.choices[newKey] = state.choices[current];
                         delete state.choices[current];
@@ -719,7 +716,6 @@
                         }
                     });
                     state.headers[idx] = newKey;
-                    // selectedAxes/Targets 更新
                     state.selectedAxes = state.selectedAxes.map(a => a === current ? newKey : a);
                     state.selectedTargets = state.selectedTargets.map(t => t === current ? newKey : t);
                     renderEditor();
@@ -728,7 +724,7 @@
                 });
             });
 
-            // イベント: 選択肢追加
+            // 選択肢追加
             editorHead.querySelectorAll('.add-choice').forEach(el => {
                 el.addEventListener('click', function() {
                     const idx = parseInt(this.dataset.col);
@@ -741,14 +737,13 @@
                 });
             });
 
-            // イベント: 選択肢削除
+            // 選択肢削除
             editorHead.querySelectorAll('.del-choice').forEach(el => {
                 el.addEventListener('click', function() {
                     const col = this.dataset.col;
                     const choice = this.dataset.choice;
                     if (!confirm('選択肢 "' + choice + '" を削除しますか？')) return;
                     removeChoiceForColumn(col, choice);
-                    // 該当の値を持つ行をクリア
                     state.rows.forEach(row => {
                         if (row[col] === choice) row[col] = '';
                     });
@@ -756,7 +751,7 @@
                 });
             });
 
-            // イベント: 列削除（人数カラムは削除不可）
+            // 列削除
             editorHead.querySelectorAll('.del-col').forEach(el => {
                 el.addEventListener('click', function() {
                     const idx = parseInt(this.dataset.col);
@@ -794,18 +789,15 @@
                         const choices = getChoicesForColumn(h);
 
                         if (isWeight) {
-                            // 人数カラムは数値入力
                             tbodyHtml += '<td><input type="number" value="' + val.replace(/"/g,
                                     '&quot;') + '" data-row="' + ri + '" data-col="' + h +
                                 '" step="1" min="0"></td>';
                         } else if (choices.length > 0) {
-                            // 選択肢がある場合はプルダウン + テキスト入力併用
                             const options = ['<option value="">(選択してください)'];
                             choices.forEach(c => {
                                 options.push('<option value="' + c + '"' + (val === c ? ' selected' :
                                     '') + '>' + c + '</option>');
                             });
-                            // 自由入力用にカスタム値を保持
                             const isCustom = val && !choices.includes(val);
                             if (isCustom) {
                                 options.push('<option value="' + val + '" selected>' + val + ' (カスタム)' +
@@ -820,7 +812,6 @@
                                 '" style="font-size:12px; padding:3px 6px; margin-top:2px;">' +
                                 '</td>';
                         } else {
-                            // 選択肢がない場合はテキスト入力
                             tbodyHtml += '<td><input type="text" value="' + val.replace(/"/g, '&quot;') +
                                 '" data-row="' + ri + '" data-col="' + h + '"></td>';
                         }
@@ -841,7 +832,7 @@
                 });
             });
 
-            // セル入力（テキスト / 数値）
+            // セル入力
             editorBody.querySelectorAll('input[data-row]').forEach(inp => {
                 inp.addEventListener('change', function() {
                     const ri = parseInt(this.dataset.row);
@@ -859,7 +850,6 @@
                 });
             });
 
-            // セル入力（プルダウン）
             editorBody.querySelectorAll('select[data-row]').forEach(sel => {
                 sel.addEventListener('change', function() {
                     const ri = parseInt(this.dataset.row);
@@ -867,7 +857,6 @@
                     if (state.rows[ri]) {
                         state.rows[ri][col] = this.value;
                     }
-                    // 同じ行のテキスト入力と同期
                     const textInput = this.parentElement.querySelector('input[data-row="' + ri + '"][data-col="' +
                         col + '"]');
                     if (textInput) {
@@ -876,7 +865,6 @@
                 });
             });
 
-            // テキスト入力とプルダウンの連携（逆方向）
             editorBody.querySelectorAll('input[data-row]').forEach(inp => {
                 inp.addEventListener('input', function() {
                     const ri = parseInt(this.dataset.row);
@@ -894,7 +882,6 @@
                             }
                         });
                         if (!found && val) {
-                            // 選択肢にない値は「カスタム」として追加
                             const existingCustom = Array.from(options).find(opt => opt.text.includes('カスタム'));
                             if (existingCustom) {
                                 existingCustom.value = val;
@@ -950,7 +937,6 @@
             const weightIdx = state.headers.indexOf(WEIGHT_KEY);
             state.headers.splice(weightIdx, 0, newKey);
             state.rows.forEach(row => { row[newKey] = ''; });
-            // 選択肢は空で初期化
             state.choices[newKey] = [];
             renderEditor();
             renderSelectors();
@@ -967,7 +953,7 @@
         }
 
         // ============================================================
-        //  集計（人数カラムを重みとして使用）
+        //  集計
         // ============================================================
         function generateAllCombinations(data, axes, target) {
             if (data.length === 0 || axes.length === 0) return [];
@@ -1120,6 +1106,8 @@
 
                     if (labels.length === 0) continue;
 
+                    // ★ ここが修正ポイント ★
+                    // 正方形のCanvasを作成（縦横800px）
                     const canvas = document.createElement('canvas');
                     canvas.width = 800;
                     canvas.height = 800;
@@ -1140,6 +1128,8 @@
                         },
                         options: {
                             responsive: false,
+                            // ★ これが真円にする決め手 ★
+                            aspectRatio: 1,
                             plugins: {
                                 title: {
                                     display: true,
@@ -1164,7 +1154,7 @@
                         }
                     });
 
-                    await new Promise(resolve => setTimeout(resolve, 100));
+                    await new Promise(resolve => setTimeout(resolve, 150));
 
                     const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
                     const safeName = label.replace(/[/\\?%*:|"<>]/g, '_');
