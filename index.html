@@ -359,6 +359,14 @@
             color: #92400e;
             margin-top: 10px;
         }
+        /* グラフ描画用の隠しコンテナ */
+        #chartContainer {
+            position: absolute;
+            left: -9999px;
+            top: -9999px;
+            width: 800px;
+            height: 800px;
+        }
         @media (max-width: 640px) {
             .container {
                 padding: 20px 16px;
@@ -396,6 +404,9 @@
 <body>
 
     <div class="container" id="app">
+        <!-- 隠しコンテナ（グラフ描画用） -->
+        <div id="chartContainer"></div>
+
         <h1>
             ケース別集計 円グラフZIP出力
             <small>選択肢追加＆プルダウン入力</small>
@@ -527,6 +538,7 @@
         const progressFill = document.getElementById('progressFill');
         const progressText = document.getElementById('progressText');
         const statusMsg = document.getElementById('statusMsg');
+        const chartContainer = document.getElementById('chartContainer');
 
         const COLORS = [
             '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6',
@@ -544,10 +556,6 @@
 
         function getChoicesForColumn(col) {
             return state.choices[col] || [];
-        }
-
-        function setChoicesForColumn(col, choices) {
-            state.choices[col] = choices;
         }
 
         function addChoiceForColumn(col, choice) {
@@ -1047,6 +1055,97 @@
         }
 
         // ============================================================
+        //  円グラフをPNGとして生成（完全な真円）
+        // ============================================================
+        function generatePieChartImage(label, labels, values) {
+            return new Promise((resolve) => {
+                // コンテナをクリア
+                chartContainer.innerHTML = '';
+
+                // コンテナ内にCanvasを作成（DOMに追加しないと描画がおかしくなる）
+                const canvas = document.createElement('canvas');
+                canvas.width = 800;
+                canvas.height = 800;
+                canvas.style.width = '800px';
+                canvas.style.height = '800px';
+                chartContainer.appendChild(canvas);
+
+                const ctx = canvas.getContext('2d');
+
+                const bgColors = labels.map((_, i) => COLORS[i % COLORS.length]);
+
+                // Chart.js インスタンス作成
+                const chart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: values,
+                            backgroundColor: bgColors,
+                            borderColor: '#fff',
+                            borderWidth: 3,
+                        }]
+                    },
+                    options: {
+                        responsive: false,
+                        maintainAspectRatio: true,
+                        aspectRatio: 1,
+                        layout: {
+                            padding: {
+                                top: 20,
+                                bottom: 20,
+                                left: 20,
+                                right: 20
+                            }
+                        },
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: label + ' （総数: ' + values.reduce((a, b) => a + b, 0) + '人）',
+                                font: { size: 22, weight: 'bold' },
+                                padding: { bottom: 20, top: 10 }
+                            },
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    font: { size: 14 },
+                                    padding: 16,
+                                    usePointStyle: true,
+                                    pointStyle: 'circle'
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const pct = total > 0 ? (context.parsed / total * 100).toFixed(1) : 0;
+                                        return context.label + ': ' + context.parsed + '人 (' + pct + '%)';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // 描画完了を待つ
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        // もう一度描画を強制
+                        chart.update();
+                        setTimeout(() => {
+                            // PNGに変換
+                            canvas.toBlob((blob) => {
+                                chart.destroy();
+                                canvas.remove();
+                                resolve(blob);
+                            }, 'image/png');
+                        }, 200);
+                    });
+                });
+            });
+        }
+
+        // ============================================================
         //  メイン実行
         // ============================================================
         execBtn.addEventListener('click', async () => {
@@ -1106,62 +1205,10 @@
 
                     if (labels.length === 0) continue;
 
-                    // ★ ここが修正ポイント ★
-                    // 正方形のCanvasを作成（縦横800px）
-                    const canvas = document.createElement('canvas');
-                    canvas.width = 800;
-                    canvas.height = 800;
-                    const ctx = canvas.getContext('2d');
-
-                    const bgColors = labels.map((_, i) => COLORS[i % COLORS.length]);
-
-                    const chart = new Chart(ctx, {
-                        type: 'pie',
-                        data: {
-                            labels: labels,
-                            datasets: [{
-                                data: values,
-                                backgroundColor: bgColors,
-                                borderColor: '#fff',
-                                borderWidth: 2,
-                            }]
-                        },
-                        options: {
-                            responsive: false,
-                            // ★ これが真円にする決め手 ★
-                            aspectRatio: 1,
-                            plugins: {
-                                title: {
-                                    display: true,
-                                    text: label + ' （総数: ' + filteredData.length + '人）',
-                                    font: { size: 20, weight: 'bold' },
-                                    padding: { bottom: 16 }
-                                },
-                                legend: {
-                                    position: 'bottom',
-                                    labels: { font: { size: 14 }, padding: 16 }
-                                },
-                                tooltip: {
-                                    callbacks: {
-                                        label: function(context) {
-                                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                            const pct = total > 0 ? (context.parsed / total * 100).toFixed(1) : 0;
-                                            return context.label + ': ' + context.parsed + '人 (' + pct + '%)';
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    });
-
-                    await new Promise(resolve => setTimeout(resolve, 150));
-
-                    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                    // 円グラフをPNGとして生成
+                    const blob = await generatePieChartImage(label, labels, values);
                     const safeName = label.replace(/[/\\?%*:|"<>]/g, '_');
                     folder.file(safeName + '.png', blob);
-
-                    chart.destroy();
-                    canvas.remove();
 
                     completed++;
                     const pct = Math.round((completed / total) * 100);
@@ -1184,6 +1231,8 @@
             } finally {
                 execBtn.disabled = false;
                 execBtn.textContent = '全パターン集計＆ZIP生成';
+                // コンテナクリア
+                chartContainer.innerHTML = '';
             }
         });
 
@@ -1223,6 +1272,7 @@
             progressText.textContent = '待機中...';
             statusMsg.textContent = 'リセットしました。データを編集してから実行してください。';
             statusMsg.className = 'status-msg';
+            chartContainer.innerHTML = '';
             renderSelectors();
             renderEditor();
         });
