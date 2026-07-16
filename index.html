@@ -4,10 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ケース別集計 円グラフZIP出力</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js">
-    </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js">
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -140,6 +138,18 @@
             font-size: 12px;
             border-radius: 20px;
         }
+        .btn-edit {
+            padding: 2px 8px;
+            font-size: 12px;
+            border-radius: 20px;
+            background: transparent;
+            border: 1px solid #94a3b8;
+            cursor: pointer;
+            color: #475569;
+        }
+        .btn-edit:hover {
+            background: #e2e8f0;
+        }
         .btn:disabled {
             opacity: 0.4;
             pointer-events: none;
@@ -156,6 +166,11 @@
             justify-content: space-between;
             align-items: center;
             gap: 12px;
+        }
+        .selector-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
         .editor-wrap {
             overflow-x: auto;
@@ -388,6 +403,9 @@
             .editor-wrap .col-header .col-actions {
                 flex-wrap: wrap;
             }
+            .selector-item {
+                flex-wrap: wrap;
+            }
         }
     </style>
 </head>
@@ -400,14 +418,13 @@
         </h1>
         <div class="sub">
             各列に「選択肢を追加」できます。追加した選択肢はプルダウンで選べるので、手入力を減らせます。
-            人数カラムは固定（数値入力）です。
+            人数カラムは固定（数値入力）です。空欄の場合は「1」として扱います。
         </div>
 
-        <!-- STEP1 -->
         <div class="section">
             <div class="section-title">
                 <span>ステップ1：集計設定</span>
-                <span class="badge">列名から選択</span>
+                <span class="badge">列名から選択（✎で名前変更）</span>
             </div>
             <div class="row" style="gap:20px;">
                 <div>
@@ -423,10 +440,10 @@
             </div>
             <div class="weight-info">
                 <strong>「人数」カラムは固定です。</strong> 数値（半角数字）を入力してください。
+                空欄の場合は「1」として扱います。
             </div>
         </div>
 
-        <!-- STEP2 -->
         <div class="section">
             <div class="section-title">
                 <span>ステップ2：データ入力</span>
@@ -448,11 +465,11 @@
             </div>
             <div style="margin-top:12px; font-size:13px; color:#94a3b8;">
                 * 列名をダブルクリックで編集できます。<br>
-                * 「選択肢を追加」ボタンでその列の選択肢を追加すると、セルがプルダウンになります。
+                * 「選択肢を追加」ボタンでその列の選択肢を追加すると、セルがプルダウンになります。<br>
+                * 「人数」が空欄の場合は「1」として集計されます。
             </div>
         </div>
 
-        <!-- STEP3 -->
         <div class="section">
             <div class="section-title">
                 <span>ステップ3：全パターン集計＆ZIP出力</span>
@@ -554,6 +571,39 @@
         }
 
         // ============================================================
+        //  列名変更
+        // ============================================================
+        function renameColumn(oldName, newName) {
+            if (oldName === newName) return;
+            if (state.headers.includes(newName)) {
+                alert('同じ名前の列が既に存在します。');
+                return;
+            }
+            const idx = state.headers.indexOf(oldName);
+            if (idx === -1) return;
+            state.headers[idx] = newName;
+
+            if (state.choices[oldName]) {
+                state.choices[newName] = state.choices[oldName];
+                delete state.choices[oldName];
+            }
+
+            state.rows.forEach(row => {
+                if (row[oldName] !== undefined) {
+                    row[newName] = row[oldName];
+                    delete row[oldName];
+                }
+            });
+
+            state.selectedAxes = state.selectedAxes.map(a => a === oldName ? newName : a);
+            state.selectedTargets = state.selectedTargets.map(t => t === oldName ? newName : t);
+
+            renderEditor();
+            renderSelectors();
+            updateStatus();
+        }
+
+        // ============================================================
         //  セレクタ
         // ============================================================
         function renderSelectors() {
@@ -562,10 +612,11 @@
             let axisHtml = '';
             state.selectedAxes.forEach((val, idx) => {
                 axisHtml +=
-                    '<div style="display:flex; align-items:center; gap:6px;">' +
+                    '<div class="selector-item">' +
                     '<select class="axis-selector" data-idx="' + idx + '">' +
                     candidates.map(h => '<option value="' + h + '">' + h + '</option>').join('') +
                     '</select>' +
+                    '<button class="btn-edit" data-type="axis" data-idx="' + idx + '" title="列名を変更">✎</button>' +
                     '<span class="del" style="cursor:pointer; color:#ef4444; font-weight:700;" data-type="axis" data-idx="' +
                     idx + '">✕</span>' +
                     '</div>';
@@ -575,10 +626,11 @@
             let targetHtml = '';
             state.selectedTargets.forEach((val, idx) => {
                 targetHtml +=
-                    '<div style="display:flex; align-items:center; gap:6px;">' +
+                    '<div class="selector-item">' +
                     '<select class="target-selector" data-idx="' + idx + '">' +
                     candidates.map(h => '<option value="' + h + '">' + h + '</option>').join('') +
                     '</select>' +
+                    '<button class="btn-edit" data-type="target" data-idx="' + idx + '" title="列名を変更">✎</button>' +
                     '<span class="del" style="cursor:pointer; color:#ef4444; font-weight:700;" data-type="target" data-idx="' +
                     idx + '">✕</span>' +
                     '</div>';
@@ -600,6 +652,27 @@
                     sel.value = candidates[0];
                 }
                 sel.addEventListener('change', syncSelectors);
+            });
+
+            document.querySelectorAll('.btn-edit[data-type="axis"]').forEach(el => {
+                el.addEventListener('click', function() {
+                    const idx = parseInt(this.dataset.idx);
+                    const oldName = state.selectedAxes[idx];
+                    const newName = prompt('集計軸の名前を変更:', oldName);
+                    if (newName && newName.trim() && newName.trim() !== oldName) {
+                        renameColumn(oldName, newName.trim());
+                    }
+                });
+            });
+            document.querySelectorAll('.btn-edit[data-type="target"]').forEach(el => {
+                el.addEventListener('click', function() {
+                    const idx = parseInt(this.dataset.idx);
+                    const oldName = state.selectedTargets[idx];
+                    const newName = prompt('集計対象の名前を変更:', oldName);
+                    if (newName && newName.trim() && newName.trim() !== oldName) {
+                        renameColumn(oldName, newName.trim());
+                    }
+                });
             });
 
             document.querySelectorAll('.del[data-type="axis"]').forEach(el => {
@@ -629,18 +702,39 @@
             state.selectedTargets = Array.from(targetSels).map(s => s.value);
         }
 
+        // ============================================================
+        //  セレクタ追加（エディタにも列を追加）
+        // ============================================================
         addAxisSelectorBtn.addEventListener('click', () => {
-            const candidates = getCandidates();
-            if (candidates.length === 0) { alert('分類項目がありません。'); return; }
-            state.selectedAxes.push(candidates[0]);
+            const name = prompt('新しい集計軸の名前を入力してください:');
+            if (!name || !name.trim()) return;
+            const newKey = name.trim();
+            if (newKey === WEIGHT_KEY) { alert('「' + WEIGHT_KEY + '」は固定カラムです。'); return; }
+            if (state.headers.includes(newKey)) { alert('同じ名前の列が既に存在します。'); return; }
+            const weightIdx = state.headers.indexOf(WEIGHT_KEY);
+            state.headers.splice(weightIdx, 0, newKey);
+            state.rows.forEach(row => { row[newKey] = ''; });
+            state.choices[newKey] = [];
+            state.selectedAxes.push(newKey);
+            renderEditor();
             renderSelectors();
+            updateStatus();
         });
 
         addTargetSelectorBtn.addEventListener('click', () => {
-            const candidates = getCandidates();
-            if (candidates.length === 0) { alert('分類項目がありません。'); return; }
-            state.selectedTargets.push(candidates[0]);
+            const name = prompt('新しい集計対象の名前を入力してください:');
+            if (!name || !name.trim()) return;
+            const newKey = name.trim();
+            if (newKey === WEIGHT_KEY) { alert('「' + WEIGHT_KEY + '」は固定カラムです。'); return; }
+            if (state.headers.includes(newKey)) { alert('同じ名前の列が既に存在します。'); return; }
+            const weightIdx = state.headers.indexOf(WEIGHT_KEY);
+            state.headers.splice(weightIdx, 0, newKey);
+            state.rows.forEach(row => { row[newKey] = ''; });
+            state.choices[newKey] = [];
+            state.selectedTargets.push(newKey);
+            renderEditor();
             renderSelectors();
+            updateStatus();
         });
 
         // ============================================================
@@ -679,34 +773,15 @@
             theadHtml += '<th style="width:32px; min-width:32px;"></th></tr>';
             editorHead.innerHTML = theadHtml;
 
-            // 列名編集
+            // 列名編集（ダブルクリック）
             editorHead.querySelectorAll('.col-label').forEach(el => {
                 el.addEventListener('dblclick', function() {
                     const idx = parseInt(this.dataset.col);
                     const current = state.headers[idx];
                     const newName = prompt('列名を入力してください:', current);
-                    if (!newName || !newName.trim() || newName.trim() === current) return;
-                    const newKey = newName.trim();
-                    if (state.headers.includes(newKey) && state.headers.indexOf(newKey) !== idx) {
-                        alert('同じ名前の列が既に存在します。');
-                        return;
+                    if (newName && newName.trim() && newName.trim() !== current) {
+                        renameColumn(current, newName.trim());
                     }
-                    if (state.choices[current]) {
-                        state.choices[newKey] = state.choices[current];
-                        delete state.choices[current];
-                    }
-                    state.rows.forEach(row => {
-                        if (row[current] !== undefined) {
-                            row[newKey] = row[current];
-                            delete row[current];
-                        }
-                    });
-                    state.headers[idx] = newKey;
-                    state.selectedAxes = state.selectedAxes.map(a => a === current ? newKey : a);
-                    state.selectedTargets = state.selectedTargets.map(t => t === current ? newKey : t);
-                    renderEditor();
-                    renderSelectors();
-                    updateStatus();
                 });
             });
 
@@ -777,7 +852,7 @@
                         if (isWeight) {
                             tbodyHtml += '<td><input type="number" value="' + val.replace(/"/g,
                                     '&quot;') + '" data-row="' + ri + '" data-col="' + h +
-                                '" step="1" min="0"></td>';
+                                '" step="1" min="0" placeholder="1"></td>';
                         } else if (choices.length > 0) {
                             const options = ['<option value="">(選択してください)'];
                             choices.forEach(c => {
@@ -850,6 +925,7 @@
             if (state.headers.length === 0) { alert('列がありません。'); return; }
             const newRow = {};
             state.headers.forEach(h => { newRow[h] = ''; });
+            newRow[WEIGHT_KEY] = '1';
             state.rows.push(newRow);
             renderEditor();
         }
@@ -866,6 +942,7 @@
             state.choices[newKey] = [];
             renderEditor();
             renderSelectors();
+            updateStatus();
         }
 
         function clearData() {
@@ -883,15 +960,15 @@
         clearDataBtn.addEventListener('click', clearData);
 
         // ============================================================
-        //  集計
+        //  集計（修正：人数が空欄または0の場合は「1」として扱う）
         // ============================================================
         function generateAllCombinations(data, axes, target) {
             if (data.length === 0 || axes.length === 0) return [];
 
             const expanded = [];
             data.forEach(row => {
-                const weight = parseInt(row[WEIGHT_KEY]) || 0;
-                if (weight <= 0) return;
+                let weight = parseInt(row[WEIGHT_KEY]);
+                if (isNaN(weight) || weight <= 0) weight = 1;
                 for (let i = 0; i < weight; i++) {
                     const copy = {};
                     Object.keys(row).forEach(k => { copy[k] = row[k]; });
@@ -939,9 +1016,7 @@
         }
 
         function getCombinations(arr, r) {
-            if (r === 0) return [
-                []
-            ];
+            if (r === 0) return [[]];
             if (arr.length === 0) return [];
             const [first, ...rest] = arr;
             const withFirst = getCombinations(rest, r - 1).map(c => [first, ...c]);
@@ -950,9 +1025,7 @@
         }
 
         function cartesianProduct(arrays) {
-            if (arrays.length === 0) return [
-                []
-            ];
+            if (arrays.length === 0) return [[]];
             const [first, ...rest] = arrays;
             const restProduct = cartesianProduct(rest);
             const result = [];
@@ -974,7 +1047,7 @@
         }
 
         // ============================================================
-        //  自力円グラフ描画（完全な真円・日本語確実）
+        //  自力円グラフ描画
         // ============================================================
         function drawPieChartOnCanvas(canvas, label, labels, values) {
             const ctx = canvas.getContext('2d');
@@ -988,11 +1061,9 @@
             const total = values.reduce((a, b) => a + b, 0);
             const colors = labels.map((_, i) => COLORS[i % COLORS.length]);
 
-            // 白背景
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, width, height);
 
-            // 円グラフ
             let startAngle = -Math.PI / 2;
             values.forEach((value, i) => {
                 const sliceAngle = (value / total) * 2 * Math.PI;
@@ -1008,13 +1079,6 @@
                 startAngle += sliceAngle;
             });
 
-            // 中心に白丸（ドーナツ風にしたい場合）
-            // ctx.beginPath();
-            // ctx.arc(centerX, centerY, radius * 0.4, 0, 2 * Math.PI);
-            // ctx.fillStyle = '#ffffff';
-            // ctx.fill();
-
-            // タイトル（中央上）
             ctx.fillStyle = '#1e293b';
             ctx.font = 'bold 22px "Meiryo", "Hiragino Sans", "Noto Sans JP", sans-serif';
             ctx.textAlign = 'center';
@@ -1022,8 +1086,7 @@
             const titleY = centerY - radius - 25;
             ctx.fillText(label + ' （総数: ' + total + '人）', centerX, titleY);
 
-            // 凡例（下）
-            const legendY = centerY + radius + 30;
+            let legendY = centerY + radius + 30;
             const legendFontSize = 13;
             ctx.font = legendFontSize + 'px "Meiryo", "Hiragino Sans", "Noto Sans JP", sans-serif';
             ctx.textAlign = 'left';
@@ -1041,21 +1104,17 @@
                 const pct = total > 0 ? ((values[i] / total) * 100).toFixed(1) : 0;
                 const text = label + ' ' + values[i] + '人 (' + pct + '%)';
 
-                // 色ボックス
                 ctx.fillStyle = colors[i];
                 ctx.fillRect(legendX, legendY - boxSize / 2, boxSize, boxSize);
 
-                // テキスト
                 ctx.fillStyle = '#1e293b';
                 ctx.textBaseline = 'middle';
                 const textX = legendX + boxSize + textGap;
                 ctx.fillText(text, textX, legendY);
 
-                // 次の位置
                 const metrics = ctx.measureText(text);
                 legendX += boxSize + textGap + metrics.width + gap;
 
-                // はみ出たら改行（簡易）
                 if (legendX > maxWidth) {
                     legendX = 20;
                     legendY += legendFontSize + 6;
@@ -1064,7 +1123,7 @@
         }
 
         // ============================================================
-        //  メイン実行
+        //  メイン実行 (修正：複数ターゲットをすべて処理するように変更)
         // ============================================================
         execBtn.addEventListener('click', async () => {
             const data = state.rows;
@@ -1088,16 +1147,6 @@
                 return;
             }
 
-            const target = targets[0];
-            let hasValid = false;
-            data.forEach(row => {
-                if (parseInt(row[WEIGHT_KEY]) > 0) hasValid = true;
-            });
-            if (!hasValid) {
-                alert('「' + WEIGHT_KEY + '」列に有効な数値がありません。');
-                return;
-            }
-
             execBtn.disabled = true;
             execBtn.textContent = '処理中...';
             statusMsg.textContent = '集計＆円グラフ生成中...';
@@ -1105,35 +1154,49 @@
 
             try {
                 const zip = new JSZip();
-                const folder = zip.folder('円グラフ');
-                const allCombos = generateAllCombinations(data, axes, target);
+                
+                // すべての組み合わせタスクのリスト（進捗管理用）
+                let taskList = [];
+                targets.forEach(target => {
+                    const combos = generateAllCombinations(data, axes, target);
+                    combos.forEach(combo => {
+                        taskList.push({ target, combo });
+                    });
+                });
 
                 let completed = 0;
-                const total = allCombos.length;
+                const total = taskList.length;
 
                 progressFill.style.width = '0%';
                 progressText.textContent = '0 / ' + total;
 
-                for (const combo of allCombos) {
+                for (const task of taskList) {
+                    const { target, combo } = task;
                     const { label, filteredData } = combo;
+                    
                     const counts = countCategories(filteredData, target);
                     const labels = Object.keys(counts);
                     const values = Object.values(counts);
 
-                    if (labels.length === 0) continue;
+                    if (labels.length === 0) {
+                        completed++;
+                        continue;
+                    }
 
-                    // Canvas作成
                     const canvas = document.createElement('canvas');
                     canvas.width = 800;
                     canvas.height = 800;
+                    
+                    // グラフタイトルにターゲット名も含めると分かりやすいので結合
+                    const fullLabel = `【${target}】${label}`;
+                    drawPieChartOnCanvas(canvas, fullLabel, labels, values);
 
-                    // 自力描画
-                    drawPieChartOnCanvas(canvas, label, labels, values);
-
-                    // PNG化
                     const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-                    const safeName = label.replace(/[/\\?%*:|"<>]/g, '_');
-                    folder.file(safeName + '.png', blob);
+                    const safeTargetFolder = target.replace(/[/\\?%*:|"<>]/g, '_');
+                    const safeFileName = label.replace(/[/\\?%*:|"<>]/g, '_');
+                    
+                    // ターゲットごとにフォルダを分けて格納
+                    zip.folder(safeTargetFolder).file(safeFileName + '.png', blob);
 
                     completed++;
                     const pct = Math.round((completed / total) * 100);
